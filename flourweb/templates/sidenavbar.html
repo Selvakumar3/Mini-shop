@@ -1,0 +1,50 @@
+{% load static %}
+{% load permission_tags %}
+{% get_permission as menus %}
+<nav class="sidebar sidebar-offcanvas sticky-sidebar" id="sidebar">
+    <ul class="nav">
+        <li class="nav-item nav-category">Menu</li>
+        <li class="nav-item active">
+            <a class="nav-link" href="/dashboard/">
+                <i class="menu-icon mdi mdi-view-dashboard dashboard-icon"></i>
+              <span class="menu-title">Dashboard</span>
+            </a>
+          </li>
+        {% for menu in menus %}
+            {% if menu.is_module %}
+                <li class="nav-item">
+                    <a class="nav-link" data-bs-toggle="collapse" href="#menu-{{ menu.menu_id }}" aria-expanded="false" aria-controls="menu-{{ menu.menu_id }}">
+                        <i class="menu-icon {{ menu.icon_path }}"></i>
+                        <span class="menu-title">{{ menu.menu_name }}</span>
+                        <i class="menu-arrow"></i>
+                    </a>
+                    <div class="collapse" id="menu-{{ menu.menu_id }}">
+                        <ul class="nav flex-column sub-menu">
+                            {% for sub_menu in menus %}
+                                {% if sub_menu.parent_id == menu.menu_id %}
+                                    <li class="nav-item">
+                                        <a class="nav-link" href="{{ sub_menu.url }}">{{ sub_menu.menu_name }}</a>
+                                    </li>
+                                {% endif %}
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </li>
+            {% endif %}
+        {% endfor %}
+
+        <!-- For non-module items that are not submenus -->
+        {% for menu in menus %}
+            {% if not menu.is_module %}
+                {% if menu.parent_id is none %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ menu.url }}">
+                            <i class="menu-icon {{ menu.icon_path }}"></i>
+                            <span class="menu-title">{{ menu.menu_name }}</span>
+                        </a>
+                    </li>
+                {% endif %}
+            {% endif %}
+        {% endfor %}
+    </ul>
+</nav>

@@ -1,0 +1,159 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0">
+<link rel="shortcut icon" type="image/x-icon" href="{% static 'images/spear-logo.jpg' %}">
+<title>Velan foods</title>
+
+<head>
+  <link rel="stylesheet" type="text/css" href="{% static 'css/login_bootstrap.min.css' %}">
+  <link rel="stylesheet" href="{% static 'plugins/login_feather/feather.css' %}">
+  <link rel="stylesheet" href="{% static 'plugins/fontawesome/css/fontawesome.min.css' %}">
+  <link rel="stylesheet" href="{% static 'plugins/fontawesome/css/all.min.css' %}">
+  <link rel="stylesheet" type="text/css" href="{% static 'css/login_style.css' %}">
+  <link rel="stylesheet" type="text/css" href="{% static 'plugins/sweetalert2/sweetalert2.min.css' %}">
+  <script src="{% static 'js/jquery-3.6.1.min.js' %}"></script>
+  <script src="{% static 'plugins/sweetalert2/sweetalert2.min.js' %}"></script>
+  <style>
+    .img-fluid-login {
+      max-width: 124%;
+      height: auto;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="main-wrapper login-body">
+    <div class="container-fluid px-0">
+      <div class="row">
+        <div class="col-lg-6 login-wrap">
+          <div class="login-sec">
+            <div class="log-img">
+              <img class="img-fluid-login" src="{% static 'images/rice_man.jpeg' %}" alt="Logo">
+            </div>
+          </div>
+        </div>
+        <div class="col-lg-6 login-wrap-bg">
+          <div class="login-wrapper">
+            <div class="loginbox">
+              <div class="login-right">
+                <div class="login-right-wrap">
+                  <div class="">
+                    <a class="d-flex">
+                      <img src="{% static 'images/spear-logo.jpg' %}" width="120" height="120" alt>
+                      <h2 class="fw-bold  mt-4" style="font-size: 30px;color: black;">Velan foods
+                        <small class="d-block f-10" style="font-size: 30px;">Welcome Back!</small>
+                      </h2>
+                    </a>
+                  </div>
+                  <h2 style="color: black;">Login to explore more.</h2>
+                  <div>
+                    <form action="{% url 'login' %}" id="formLogin" method="POST" enctype="multipart/form-data">
+                      {% csrf_token %}
+                      <!-- username -->
+                      <div class="form-group">
+                        <label style="color: black;">Username</label>
+                        <input class="form-control pass-input" type="text" id="txtUserName" name="txtUserName"
+                          placeholder="Enter username" minlength="4" value="{{data.username}}" autocomplete="off">
+                        <span class="text-danger" id="spanUserName"></span>
+                      </div>
+                      <!-- Password -->
+                      <div class="form-group mt-4">
+                        <label style="color: black;">Password</label>
+                        <input class="form-control pass-input" type="password" id="txtPassword" name="txtPassword"
+                          placeholder="Enter password" minlength="8" autocomplete="off">
+                        <span class="profile-views feather-eye-off toggle-password" style="cursor: pointer;"
+                          title="show"></span>
+                        <span class="text-danger" id="spanPassword"></span>
+                      </div>
+                      <div class="forgotpass mt-2">
+                        <a href="/forget-password" style="color: red;font-size: 12px;">forgot password?</a>
+                      </div>
+                      <div class="form-group login-btn">
+                        <button class="btn btn-dark btn-block" onclick="return ValidateForm()" type="submit"
+                          title="click me">Login</button>
+                      </div>
+                    </form>
+                  
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+<script>
+
+  $(document).ready(function () {
+    $(".toggle-password").click(function (e) {
+      e.preventDefault();
+      const passwordField = $("#txtPassword");
+      const passType = passwordField.attr("type") === "password" ? "text" : "password";
+      passwordField.attr("type", passType);
+      // Toggle the icon
+      const icon = $(this);
+      icon.toggleClass("feather-eye feather-eye-off");
+    });
+
+    // Clear the username error message when typing in the username field
+    $('#txtUserName').on('keypress', function () {
+      $('#spanUserName').text('');
+    });
+
+    // Clear the password error message when typing in the password field
+    $('#txtPassword').on('keypress', function () {
+      $('#spanPassword').text('');
+      $('#spanUserName').text('');
+    });
+  });
+
+  function ValidateForm() {
+
+    if ($('#txtUserName').val() == '' && $('#txtPassword').val() == '') {
+      $('#spanUserName').text('Please enter username')
+      $('#spanPassword').text('Please enter password')
+      return false
+    }
+    if ($('#txtUserName').val() == '') {
+      $('#spanUserName').text('Please enter username')
+      return false
+    }
+    if ($('#txtPassword').val() == '') {
+      $('#spanPassword').text('Please enter password')
+      return false
+    }
+  }
+
+
+</script>
+
+{% if messages %}
+{% for message in messages %}
+<script>
+
+  var errorcode = '{{message.tags}}' == 'success' ? 1 : 2;
+  showmsg('{{message}}', errorcode);
+
+  function showmsg(msg, type) {
+    const Toast = Swal.mixin({
+      toast: true,
+      position: 'top-end',
+      showConfirmButton: false,
+      timer: 3000,
+      timerProgressBar: true,
+    });
+
+    Toast.fire({
+      icon: (type == 1 ? 'success' : 'error'),
+      title: `<span style='font-size: 15px; font-family: Arial, sans-serif;'>${msg}</span>`
+    })
+  }
+
+</script>
+{% endfor %}
+{% endif %}
+
+</html>

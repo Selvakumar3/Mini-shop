@@ -1,0 +1,243 @@
+{% extends 'main.html' %}
+{% load static %}
+{% block content %}
+
+<div class="main-panel">
+    <!----------------------- Form------------------------------------------------------->
+    <div id="frmBrand">
+        <form method="POST" action="{% url 'brand' %}" enctype="multipart/form-data" 
+        onsubmit="return check_validate_forms('#frmBrand')">
+        {% csrf_token %}
+            <div class="content-wrapper">
+                <div class="card">
+                    <div class="card-body">
+                        <h4 class="card-title" id="txtTitle">{% if edit %} Edit {% else %} Add {% endif %} brand</h4>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="ddlCategory">Category name</label>
+                                    <select class="form-select" aria-label="Default select example" id="ddlCategory" name="ddlCategory" data-validate="true">
+                                        <option value="0"> Select category</option>
+                                        {% for category in category %}
+                                            <option value="{{category.categoryid}}" {% if data.category == category.categoryid %}selected{% endif %}>
+                                            {{category.category_name}}</option>
+                                        {% endfor %}
+                                    </select>
+                                    <span class="error-message fs-14" style="color: red;"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="brandName">Brand name</label>
+                                    <input type="text" class="form-control custom-input-border" id="txtBrandName" name="txtBrandName"
+                                        placeholder="Enter brand name" maxlength="50" autocomplete="off" data-validate="true" value="{{data.brand_name}}">
+                                        <span class="error-message fs-14"
+                                        style="color: red;">{{errors.message.brand_name|join:""}}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>Image <small style="color: red;">*Ratio 1:1</small></label>
+                                    <input type="file" name="brandImg" id="brandImg" class="file-upload-default" style="display: none;" data-validate="true"
+                                    accept="image/png,image/jpg,image/jpeg">
+                                    <span class="error-message fs-14" style="color: red;"></span>
+                                    <div class="input-group col-xs-12">
+                                        <input type="text" class="form-control file-upload-info custom-input-border" disabled=""
+                                            placeholder="Upload Image">
+                                        <span class="input-group-append">
+                                            <button class="file-upload-browse btn btn-primary" type="button" onclick="handleFileUpload('brandImg')">Upload</button>
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="text-center">
+                                    <img class="img-fluid rounded" height="150" width="150" id="previewImage"
+                                        src="/static/images/no-img-avatar.png">
+                                </div>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary me-2 ms-2" id="btnSave">{% if edit %} Update {% else %}Submit {% endif %}</button>
+                        <button class="btn btn-light" id="btnCancel">Cancel</button>
+                        <input type="hidden" id="hiddenEdit" name="hiddenEdit" value="{{edit}}">
+                        <input type="hidden" name="hiddenBrandId" id="hiddenBrandId" value="{{brand_id}}">
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+    <div class="content-wrapper">
+        <!----------------------------------------------------------table--------->
+        <div class="card mb-3">
+            <div class="card-body">
+                <h4 class="card-title">List of brands</h4>
+                <div class="table-responsive">
+                    <table class="table table-hover table-bordered border-bottom" id="tblBrand">
+                        <thead>
+                            <tr>
+                                <th>S.No</th>
+                                <th>Images</th>
+                                <th>Category name</th>
+                                <th>Brand name</th>
+                                <th>Status</th>
+                                <th class="text-center">Action</th>
+                            </tr>
+                        </thead>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock content %}
+{% block footer %}
+<script>
+    $(document).ready(function () {
+        $('#ddlCategory').select2({minimumResultsForSearch: 0 });
+        datatablebind();
+        // Clear input Message ::
+        clearErrorMessageOnInput('#frmBrand');
+    });
+
+    // Datatable ::
+    function datatablebind() {
+        $("#tblBrand").DataTable({
+            responsive: true,
+            autoWidth: false,
+            aLengthMenu: [
+                [10, 30, 50, -1],
+                [10, 30, 50, "All"]
+            ],
+            columnDefs: [
+                {
+                    className: "dt-body-center",
+                    targets: [0,1,4,5],
+                    orderable: false
+                }
+            ],
+            language: {
+                search: "_INPUT_", // Removes the 'Search' field label
+                searchPlaceholder: "Search", // Placeholder for the search box
+                sLengthMenu: "_MENU_",
+                sInfo: "_START_ to _END_ of _TOTAL_",
+                sInfoEmpty: "0 to 0 of 0",
+                sInfoFiltered: "(filtered from _MAX_ total records)"
+            },
+            iDisplayLength: 10,
+            processing: true,
+            serverSide: true,
+            ajax: {
+                url: '/masters/brand-dt/',
+                type: 'GET',
+                data: function (data) {
+                    // Additional data can be sent if needed
+                }
+            },
+            columns: [
+                {
+                    data: null,
+                    width: 20,
+                    orderable: false,
+                    render: function (data, type, row, meta) {
+                        return meta.row + meta.settings._iDisplayStart + 1;
+                    }
+                },
+                {
+                    data: null,
+                    class: "text-center",
+                    render: function (data) {
+                        return data ? `<img src="${data.brand_image}" width="100" height="100">` : '-';
+                    }
+                },
+                {
+                    data: null,
+                    class: "text-left",
+                    render: function (data) {
+                        return (data.category_name != '') ? data.category_name : '-';
+                    }
+                },
+                {
+                    data: null,
+                    class: "text-left",
+                    render: function (data) {
+                        return (data.brand_name != '') ? data.brand_name : '-';
+                    }
+                },
+                {
+                    data: null,
+                    class: "text-center",
+                    render: function (data) {
+                        // Check if is_active is true or 'true' (string)
+                        const isActive = data.is_active === true || data.is_active === 'true';
+
+                        return `<div class="form-check form-switch">
+                            <input type="checkbox" class="form-check-input ms-4 fs-5" id="chkBrand${data.brand_id}" ${isActive ? 'checked' : ''} 
+                            onclick="doStatus(${data.brand_id})">
+                        <label class="custom-control-label pointer" title="Status" for="chkBrand${data.brand_id}"></label></div>`;
+                    }
+                },
+                {
+                    data: null,
+                    class: "text-center",
+                    render: function (data) {
+                        return `
+                            <td class="text-center">
+                                <a class="btn btn-success btn-rounded btn-icon" onclick="EditRow(${data.brand_id})" title="Edit">
+                                    <i class="ti-pencil-alt" style="font-size: 20px;"></i>
+                                </a>
+                                <a class="btn btn-danger btn-rounded btn-icon" href='/masters/deletebrand/?brand_id=${data.brand_id}' onclick="confirmDelete(event, '${data.brand_name}')">
+                                    <i class="ti-trash"></i>
+                                </a>
+                        </td>`;
+                    }
+                }
+            ],
+        });
+
+        // Append elements into the datatable plugin for spacing on top
+        $('.dataTables_filter input[type="search"]').css("width", "9rem");
+        $(".dataTables_filter").parent().addClass("d-flex justify-content-end");
+
+        $(".dataTables_filter").parent().append(`
+        <div class="add-group">
+            <a class="btn btn-light ms-3" onClick="location.reload()">
+                <img src='${window.location.origin}/static/images/icons/re-fresh.svg' alt="Refresh">
+            </a>
+        </div>
+        <a  class="btn btn-info text-white ms-2" title="Download Excel" onclick="ExporttabletoExcell('tblBrand','Brand_List',4)"><i class="icon-download"></i> Excel</a>
+        <a class="btn btn-danger text-white ms-2" onclick="ExporttabletoPdf('tblBrand','Brand_List',4)"><i  class="ti-file btn-icon-append"></i> PDF</a>
+    `);
+}
+
+// Binded data in edit action::
+function EditRow(brand_id) {
+    fetch(`/masters/edit-brand/?brand_id=${brand_id}`, { method: 'GET' })
+        .then(res => res.json())
+        .then(data => {
+
+            $('#ddlCategory').val(data.category).trigger('change')
+            $('#txtBrandName').val(data.brand_name).focus()
+            $('#previewImage').attr('src', data.brand_image);
+            $('#hiddenEdit').val('edit');
+            $('#hiddenBrandId').val(data.brand_id);
+            $('#brandImg').removeAttr('data-validate');
+            $('#btnSave').text('Update')
+            $('#txtTitle').text('Edit Brand')
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+
+        }).catch(error => {
+            console.error('Error:', error);
+
+        });
+    }
+
+// Change Category Active Status::
+function doStatus(brand_id) {
+    var status = $("#chkBrand" + brand_id).is(":checked");
+    confirmStatusChange(brand_id, "/masters/update-brand-status/", "", (status === true ? 1 : 0), "chkBrand", "brand");
+    }
+</script>
+{% endblock footer %}

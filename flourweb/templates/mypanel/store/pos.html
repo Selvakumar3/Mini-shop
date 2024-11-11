@@ -1,0 +1,219 @@
+{% extends 'main.html' %}
+{% load static %}
+{% block content %}
+
+<div class="main-panel">
+    <form action="{% url 'pos' %}" method="POST" onsubmit="return submitform()" id="frmPOS" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="content-wrapper">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-body">
+                            <h4 class="card-title">Product section</h4>
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="form-group">
+                                        <label for="Category">Category name</label>
+                                        <select class="form-select" aria-label="Default select example" id="ddlCategory" name="ddlCategory">
+                                            <option value="0">Select</option>
+                                            {% for category in category %}
+                                                <option value="{{category.categoryid}}" categoryName="{{category.category_name}}" data-img="{{category.category_image}}" {% if data.category == category.categoryid %}selected{% endif %}>
+                                                {{category.category_name}}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-group">
+                                        <label for="exampleInputUsername1">Invoice no </label>
+                                        <input type="text" class="form-control input-readonly" id="txtInvoiceNo" name="txtInvoiceNo"
+                                            value="{{generatecode.code}}" readonly>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mt-2">
+                                    <label for="exampleInputUsername1" class="fs-14">Invoice Date</label>
+                                    <div id="datepicker-popup" class="input-group date datepicker navbar-date-picker">
+                                        <span class="input-group-addon input-group-prepend border-right">
+                                            <span class="icon-calendar input-group-text calendar-icon"></span>
+                                        </span>
+                                        <input type="text" class="form-control" name="txtInvoiceDate" id="txtInvoiceDate">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="form-group">
+                                        <label for="exampleInputUsername1">Actual weight</label>
+                                        <input type="text" class="form-control custom-input-border" id="txtActualWeight"
+                                            name="txtActualWeight"
+                                            oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');">
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-group">
+                                        <label for="exampleInputUsername1">Average weight</label>
+                                        <input type="text" class="form-control custom-input-border"
+                                            id="txtAverageWeight" name="txtAverageWeight"
+                                            oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');">
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-group">
+                                        <label for="exampleInputUsername1">Price</label>
+                                        <input type="text" class="form-control custom-input-border input-readonly" id="txtPrice"
+                                            name="txtPrice" readonly>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                      <label for="exampleInputUsername1">Customer name</label>
+                                      <input type="text" class="form-control" id="txtCustomername" name="txtCustomername"
+                                        placeholder="Enter name">
+                                    </div>
+                                  </div>
+                                
+                                <div class="col-md-3 m-auto ms-2">
+                                    <div class="add-items d-flex mb-0">
+                                        <button
+                                            class="add btn btn-icons btn-rounded btn-primary todo-list-add-btn text-white me-0 pl-12p" row="0" onclick="itemaddbutton()" id="additembtn"><i
+                                                class="mdi mdi-plus"></i></button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="text-center">
+                                    <img class="img-fluid rounded" height="150" width="150" id="previewimage"
+                                        src="/static/images/no-img-avatar.png">
+                                </div>
+                            </div>
+                        </div>
+                        <br>
+                        <br>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-body">
+                            <h4 class="card-title">Billing section</h4>
+                            <div class="row">
+                                <div class="table-container" style="text-align: center;">
+                                    <table class="table table-bordered" id="cartpos" style="margin: auto;">
+                                        <thead class="text-muted thead-dark">
+                                            <tr class="text-center">
+                                                <th class="border-bottom-0" scope="col">S.no</th>
+                                                <th class="border-bottom-0" scope="col">Item</th>
+                                                <th class="border-bottom-0" scope="col">Act wt</th>
+                                                <th class="border-bottom-0" scope="col">Avg wt</th>
+                                                <th class="border-bottom-0" scope="col">Price</th>
+                                                <th class="border-bottom-0" scope="col">Action</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="itemtablebody">
+                                            <!-- No rows, show a message -->
+                                            <tr id="emptyitemrow">
+                                                <td colspan="6" class="text-center">No item available</td>
+                                            </tr>
+                                        </tbody>
+                                        <tfoot style="border-top: 2px solid #dee2e6;">
+                                            <tr>
+                                                <th colspan="4">Total</th>
+                                                <td class="text-start fw-bold" id="TotAmt">0.00</td>
+                                                <td></td>
+                                            </tr>
+                                        </tfoot>
+                                    </table>
+                                </div>
+                            </div>
+                            <div class="row mt-2">
+                                <div class="col-md-6">
+                                    <div class="row mt-4">
+                                        <div class="col-md-12">
+                                            <label><small>Bill type</small></label>
+                                            <select class="form-select" aria-label="Default select example" id="ddlBillType" name="ddlBillType" data-validate="true">
+                                                <option value="0"> Select Bill type</option>
+                                                {% for billtype in billtype %}
+                                                    <option value="{{billtype.bill_typeid}}" {% if data.bill_type == billtype.bill_typeid %}selected{% endif %}>
+                                                    {{billtype.bill_type}}</option>
+                                                {% endfor %}
+                                            </select>
+                                            <span class="error-message fs-14" style="color: red;"></span>
+                                        </div>
+                                    </div>
+                                    <div class="row mt-3">
+                                        <div class="col-md-12">
+                                            <div class="form-group local-forms">
+                                                <label>Notes</label>
+                                                <textarea class="form-control" rows="4" cols="100" name="notes" id="notes">{{data.notes}}</textarea>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <div class="card">
+                                            <div class="input-group mt-5">
+                                                <div class="input-group-prepend ms-auto">
+                                                  <span class="input-group-text bg-white text-black">Sub total</span>
+                                                </div>
+                                                <div class="input-group-append">
+                                                  <span class="input-group-text text-black" id="subtotamt" name="subtotamt">0.00</span>
+                                                </div>
+                                            </div>
+                                            <div class="input-group mt-3">
+                                                <div class="input-group-prepend ms-auto">
+                                                  <span class="input-group-text bg-white text-black">Round Off</span>
+                                                </div>
+                                                <div class="input-group-append">
+                                                  <span class="input-group-text text-black" id="roundoffamt" name="roundoffamt">0.00</span>
+                                                </div>
+                                            </div>
+                                            <div class="input-group mt-3">
+                                                <div class="input-group-prepend ms-auto">
+                                                  <span class="input-group-text bg-white text-black">Net Amount</span>
+                                                </div>
+                                                <div class="input-group-append">
+                                                  <span class="input-group-text text-black" id="netamt" name="netamt">0.00</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row mt-2">
+                                <div class="">
+                                    <input type="hidden" id="subTotal" name="subTotal">
+                                    <input type="hidden" id="roundOff" name="roundOff">
+                                    <input type="hidden" id="netAmount" name="netAmount">
+                                    <input type="hidden" id="itemdetail" name="itemdetail">
+                                    <input type="hidden" id="hiddenPosId" name="hiddenPosId" value="{{data.pos_id}}">
+                                    <input type="hidden" id="hiddenEdit" name="hiddenEdit" value="{{edit}}">
+                                    <button type="submit" class="btn btn-primary" id="btnSubmit">Submit</button>
+                                    <a href="/store/pos-list/" class="btn btn-success text-white" type="button">Go
+                                        To List</a>
+                                    <button type="button" class="btn btn-secondary" id="btnCancel">Cancel</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+{% endblock content %}
+{% block footer %}
+
+<script>
+    var api_img_url =  '{{api_img_url}}'
+    var pos_amt =  '{{admin_settings.pos_amount}}'
+    var itemdetail_data =  '{{data.itemdetail}}'
+     var get_pos_date =  '{{data.pos_date}}'
+</script>
+<script src="{% static 'js/admin/pos.js' %}"></script>
+{% endblock footer %}

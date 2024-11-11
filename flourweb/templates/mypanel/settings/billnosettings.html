@@ -1,0 +1,177 @@
+{% extends 'main.html' %}
+{% load static %}
+{% block content %}
+
+<div class="main-panel">
+    <div id="frmBillnosettings">
+        <form action="{% url 'billno-settings' %}" method="POST" onsubmit="return check_validate_forms('#frmBillnosettings')">
+            {% csrf_token %}
+            <div class="content-wrapper">
+                <div class="card">
+                    <div class="card-body">
+                        <h4 class="card-title" id="txtTitle">Billno settings</h4>
+                        <div class="row">
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                <label></label>
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="form-group">
+                                    <strong>Prefix</strong>
+                                </div>
+                            </div>&nbsp;&nbsp;
+                            <div class="col-md-2">
+                                <div class="form-group">
+                                    <strong>Length</strong>
+                                </div>
+                            </div>&nbsp;&nbsp;
+                            <div class="col-md-2">
+                                <div class="form-group">
+                                    <strong>Live</strong>
+                                </div>
+                            </div>
+                            <!-- <div class="col-md-2 mx-3">
+                                <div class="form-group">
+                                    <strong>Example</strong>
+                                </div>
+                            </div> -->
+                        </div>
+                        <div class="row mt-2">
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                <strong>Employee</strong>
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="form-group">
+                                 <input type="text"  class="form-control custom-input-border" name="txtEmpPrefix" id="txtEmpPrefix" value="{{get_bill_settings.employee_prefix|default:'' }}" autocomplete="off" data-validate="true">
+                                 <span class="error-message fs-14" style="color: red;"></span>
+                                </div>
+                            </div>&nbsp;&nbsp;
+                            <div class="col-md-2">
+                                <div class="form-group">
+                                <input type="text"  class="form-control custom-input-border" name="txtEmpLength" id="txtEmpLength" value="{{get_bill_settings.employee_length|default:'' }}" autocomplete="off" data-validate="true">
+                                <span class="error-message fs-14" style="color: red;"></span>
+                                </div>
+                            </div>&nbsp;&nbsp;
+                            <div class="col-md-2">
+                                <div class="form-group">
+                                <input type="text"  class="form-control" name="txtEmpLive" id="txtEmpLive" value="{{get_bill_settings.employee_live|default:'' }}" disabled>
+                                </div>
+                            </div>
+                            <!-- <div class="col-md-2 mx-3">
+                                <div class="form-group">
+                                <span>EMP369</span>
+                                </div>
+                            </div> -->
+                        </div>
+                        <div class="row mt-2">
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                <strong>Stock</strong>
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="form-group">
+                                <input type="text"  class="form-control custom-input-border" name="txtBatPrefix" id="txtBatPrefix" value="{{get_bill_settings.bat_prefix|default:'' }}" autocomplete="off" data-validate="true">
+                                <span class="error-message fs-14" style="color: red;"></span>
+                                </div>
+                            </div>&nbsp;&nbsp;
+                            <div class="col-md-2">
+                                <div class="form-group">
+                                <input type="text"  class="form-control custom-input-border" name="txtBatLength" id="txtBatLength" value="{{get_bill_settings.bat_length|default:'' }}" autocomplete="off" data-validate="true">
+                                <span class="error-message fs-14" style="color: red;"></span>
+                                </div>
+                            </div>&nbsp;&nbsp;
+                            <div class="col-md-2">
+                                <div class="form-group">
+                                <input type="text"  class="form-control" name="txtBatLive" id="txtBatLive" value="{{get_bill_settings.bat_live|default:'' }}" disabled>
+                                </div>
+                            </div>
+                            <!-- <div class="col-md-2 mx-3">
+                                <div class="form-group">
+                                <span>STK003</span>
+                                </div>
+                            </div> -->
+                        </div>
+                        <div class="row mt-1">
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                <strong>Invoice</strong>
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="form-group">
+                                <input type="text"  class="form-control custom-input-border" name="txtInvPrefix" id="txtInvPrefix" value="{{get_bill_settings.inv_prefix|default:'' }}" autocomplete="off" data-validate="true">
+                                <span class="error-message fs-14" style="color: red;"></span>
+                                </div>
+                            </div>&nbsp;&nbsp;
+                            <div class="col-md-2">
+                                <div class="form-group">
+                                <input type="text"  class="form-control custom-input-border" name="txtInvLength" id="txtInvLength" value="{{get_bill_settings.inv_length|default:'' }}" autocomplete="off" data-validate="true">
+                                <span class="error-message fs-14" style="color: red;"></span>
+                                </div>
+                            </div>&nbsp;&nbsp;
+                            <div class="col-md-2">
+                                <div class="form-group">
+                                <input type="text"  class="form-control" name="txtInvLive" id="txtInvLive" value="{{get_bill_settings.inv_live|default:'' }}" disabled>
+                                </div>
+                            </div>
+                            <!-- <div class="col-md-2 mx-3">
+                                <div class="form-group">
+                                <span>POS123</span>
+                                </div>
+                            </div> -->
+                        </div>
+                        <div class="row mt-2">
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                <strong>Purchase invoice</strong>
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="form-group">
+                                <input type="text"  class="form-control custom-input-border" name="txtPurPrefix" id="txtPurPrefix" value="{{get_bill_settings.pur_prefix|default:'' }}" autocomplete="off" data-validate="true">
+                                <span class="error-message fs-14" style="color: red;"></span>
+                                </div>
+                            </div>&nbsp;&nbsp;
+                            <div class="col-md-2">
+                                <div class="form-group">
+                                <input type="text"  class="form-control custom-input-border" name="txtPurLength" id="txtPurLength" value="{{get_bill_settings.pur_length|default:'' }}" autocomplete="off" data-validate="true">
+                                <span class="error-message fs-14" style="color: red;"></span>
+                                </div>
+                            </div>&nbsp;&nbsp;
+                            <div class="col-md-2">
+                                <div class="form-group">
+                                <input type="text"  class="form-control" name="txtPurLive" id="txtPurLive" value="{{get_bill_settings.pur_live|default:'' }}" disabled>
+                                </div>
+                            </div>
+                            <!-- <div class="col-md-2 mx-3">
+                                <div class="form-group">
+                                <span>PUR001</span>
+                                </div>
+                            </div> -->
+                        </div>
+                        
+                    </div>
+                    <div class="form-group text-center">
+                        <button type="submit" class="btn btn-primary me-2">{% if get_bill_settings.employee_prefix and get_bill_settings.bat_length and get_bill_settings.inv_length and get_bill_settings.pur_length is not None  %} Update {% else %} Submit {% endif %}</button>     
+                    </div>
+                </div>
+                
+            </div>
+        </form>
+    </div>
+</div>
+
+</div>
+
+{% endblock content %}
+{% block footer %}
+<script>
+    $(document).ready(function () {
+        clearErrorMessageOnInput('#frmBillnosettings');
+    });
+</script>
+{% endblock footer %}

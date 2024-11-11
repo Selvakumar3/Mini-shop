@@ -1,0 +1,216 @@
+{% extends 'main.html' %}
+{% load static %}
+{% block content %}
+
+<div class="main-panel">
+    <div class="content-wrapper">
+        <div class="row">
+            <div class="col-sm-12">
+                <div class="home-tab">
+                    <div class="d-sm-flex align-items-center justify-content-between border-bottom">
+                        <ul class="nav nav-tabs" role="tablist">
+                            <li class="nav-item" role="presentation">
+                                <a class="nav-link ps-0 active" id="home-tab" data-bs-toggle="tab" href="#Admin"
+                                    role="tab" aria-controls="overview" aria-selected="true">Admin</a>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <a class="nav-link" id="profile-tab" data-bs-toggle="tab" href="#Emailsetup" role="tab"
+                                    aria-selected="false" tabindex="-1">Email Setup</a>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="tab-content tab-content-basic">
+                        <div class="tab-pane fade active show" id="Admin" role="tabpanel" aria-labelledby="overview">
+                            <div id="frmAminsettings">
+                                <form action="{% url 'update-admin-settings' %}" method="POST"
+                                    enctype="multipart/form-data" onsubmit="return check_validate_forms('#frmAminsettings')">
+                                    {% csrf_token %}
+                                    <div class="card">
+                                        <div class="card-body">
+                                            <h4 class="card-title" id="txtAdminTitle">Admin settings</h4>
+                                            <div class="row">
+                                                <div class="col-md-4">
+                                                    <div class="form-group">
+                                                        <label for="txtCompanyName">Company Name</label>
+                                                        <input type="text" class="form-control custom-input-border"
+                                                            id="txtCompanyName" name="txtCompanyName" value="{{get_admin_settings.company_name}}"
+                                                            placeholder="Enter your company name" autocomplete="off" data-validate="true">
+                                                            <span class="error-message fs-14" style="color: red;"></span>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <div class="form-group">
+                                                        <label for="txtContactNo">Contact No</label>
+                                                        <input type="text" class="form-control custom-input-border"
+                                                            id="txtContactNo" name="txtContactNo" value="{{get_admin_settings.company_contact_no}}"
+                                                            placeholder="Enter your contact no"
+                                                            oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');"
+                                                            maxlength="11" autocomplete="off" data-validate="true">
+                                                            <span class="error-message fs-14" style="color: red;"></span>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <div class="form-group">
+                                                        <label for="txtCompanyEmail">Company Email</label>
+                                                        <input type="email" class="form-control custom-input-border"
+                                                            id="txtCompanyEmail" name="txtCompanyEmail" value="{{get_admin_settings.company_email}}"
+                                                            placeholder="Enter your email" autocomplete="off" data-validate="true">
+                                                            <span class="error-message fs-14" style="color: red;"></span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="row">
+                                                <div class="col-md-4">
+                                                    <div class="form-group">
+                                                        <label for="txtOtpLength">OTP Length</label>
+                                                        <input type="number" class="form-control" id="txtOtpLength"
+                                                            name="txtOtpLength" placeholder="Enter your OTP length" value="{{get_admin_settings.otp_length}}">
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <div class="form-group">
+                                                        <label for="txtOtpExpired">OTP Expiry Time</label>
+                                                        <input type="number" class="form-control" id="txtOtpExpired"
+                                                            name="txtOtpExpired" placeholder="Enter expiry time" value="{% if get_admin_settings.otp_expiry_duration is not None %}{{ get_admin_settings.otp_expiry_duration }}{% else %} {% endif %}">
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <div class="form-group">
+                                                        <label for="txtOtpExpired">POS amount <small class="text-danger"> (per kg)</small></label>
+                                                        <input type="number" class="form-control custom-input-border" id="txtPOSAmount"
+                                                            name="txtPOSAmount" placeholder="Enter Amount" value="{{get_admin_settings.pos_amount}}" data-validate="true">
+                                                            <span class="error-message fs-14" style="color: red;"></span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="row">
+                                                <div class="col-md-4">
+                                                    <div class="form-group">
+                                                        <label for="txtCompanyDesc">Company Description</label>
+                                                        <textarea class="form-control" id="txtCompanyDesc"
+                                                            name="txtCompanyDesc" rows="3">{{get_admin_settings.company_desc}}</textarea>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <div class="form-group">
+                                                        <label for="txtCompanyAddress">Company Address</label>
+                                                        <textarea class="form-control custom-input-border"
+                                                            id="txtCompanyAddress" name="txtCompanyAddress" autocomplete="off" data-validate="true"
+                                                            rows="3">{{get_admin_settings.company_address}}</textarea>
+                                                        <span class="error-message fs-14" style="color: red;"></span>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <div class="form-group">
+                                                        <label>Company Image <small style="color: red;">*Ratio
+                                                                1:1</small></label>
+                                                        <span class="error-message fs-14" style="color: red;"></span>
+                                                        <input type="file" name="companyImg" id="companyImg"
+                                                            class="file-upload-default" style="display: none;" accept="image/png,image/jpg,image/jpeg">
+                                                        <div class="input-group col-xs-12">
+                                                            <input type="text"
+                                                                class="form-control file-upload-info custom-input-border"
+                                                                disabled placeholder="Upload Image">
+                                                            <span class="input-group-append">
+                                                                <button class="file-upload-browse btn btn-primary m-1"
+                                                                    type="button" id="btnCategory"
+                                                                    onclick="handleFileUpload('companyImg')">Upload</button>
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-4 text-center">
+                                                    <img class="img-fluid rounded" height="150" width="150"
+                                                        id="previewImage" 
+                                                        {% if get_admin_settings and get_admin_settings.company_logo %} 
+                                                            src="{{ get_admin_settings.company_logo }}" 
+                                                        {% else %} 
+                                                            src="/static/images/no-img-avatar.png" 
+                                                            alt="Profile Image Preview" 
+                                                        {% endif %}>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="justify-content-center">
+                                            <button type="submit" class="btn btn-primary ms-5 mb-3">{% if get_admin_settings.company_name != ""  %} Update {% else %} Submit {% endif %}</button>
+                                            <button type="button" class="btn btn-light"
+                                            id="btnCancel">Cancel</button>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                        <div class="tab-pane fade" id="Emailsetup" role="tabpanel" aria-labelledby="overview">
+                            <div id="frmEmailSettings">
+                                <form action="{% url 'update-email-settings' %}" method="POST" onsubmit="return check_validate_forms('#frmEmailSettings')">
+                                    {% csrf_token %}
+                                    <div class="card">
+                                        <div class="card-body">
+                                            <h4 class="card-title" id="txtEmailTitle">Email settings</h4>
+                                            <div class="row">
+                                                <div class="col-md-4">
+                                                    <div class="form-group">
+                                                        <label for="txtHostName">Host Name</label>
+                                                        <input type="text" class="form-control custom-input-border"
+                                                            id="txtHostName" name="txtHostName" value="{{get_email_settings.host}}"
+                                                            placeholder="Enter your Host Name" data-validate="true">
+                                                            <span class="error-message fs-14" style="color: red;"></span>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <div class="form-group">
+                                                        <label for="txtEmailAddress">Email Address</label>
+                                                        <input type="email" class="form-control custom-input-border"
+                                                            id="txtEmailAddress" name="txtEmailAddress" value="{{get_email_settings.email}}"
+                                                            placeholder="Enter your Email Address" data-validate="true">
+                                                            <span class="error-message fs-14" style="color: red;"></span>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <div class="form-group">
+                                                        <label for="txtPortNumber">Port Number</label>
+                                                        <input type="number" class="form-control custom-input-border"
+                                                            id="txtPortNumber" name="txtPortNumber"  value="{{get_email_settings.port}}"
+                                                            placeholder="Enter your Port Number" data-validate="true">
+                                                        <span class="error-message fs-14" style="color: red;"></span>
+                                                        
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <div class="form-group">
+                                                        <label for="txtPassword">Password</label>
+                                                        <input type="text" class="form-control custom-input-border"
+                                                            id="txtPassword" name="txtPassword" value="{{get_email_settings.password}}"
+                                                            placeholder="Enter your Password" data-validate="true">
+                                                        <span class="error-message fs-14" style="color: red;"></span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="justify-content-end">
+                                                <button type="submit" class="btn btn-primary me-2">{% if get_email_settings.email != ""  %} Update {% else %} Submit {% endif %}</button>
+                                                <button type="button" class="btn btn-light"
+                                                id="btnCancel">Cancel</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+{% endblock content %}
+{% block footer %}
+<script>
+    $(document).ready(function () {
+        clearErrorMessageOnInput('#frmAminsettings');
+        clearErrorMessageOnInput('#frmEmailSettings');
+    });
+
+</script>
+{% endblock footer %}

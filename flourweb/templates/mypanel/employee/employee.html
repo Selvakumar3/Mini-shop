@@ -1,0 +1,277 @@
+{% extends 'main.html' %}
+{% load static %}
+{% block content %}
+
+<div class="main-panel" id="frmEmployee">
+  <form method="POST" action="{% url 'employee' %}" enctype="multipart/form-data" onsubmit="return check_validate_forms('#frmEmployee')">
+  {% csrf_token %}
+    <div class="content-wrapper">
+      <div class="card">
+        <div class="card-body">
+          <h4 class="card-title" id="txtTitle">Add Employee</h4>
+          <h5 class="card-description"> General information </h5>
+          <div class="row">
+            <div class="col-md-3">
+              <div class="form-group">
+                <label for="exampleInputUsername1">Employee code</label>
+                <input type="text" class="form-control input-readonly" id="txtEmployeeCode" name="txtEmployeeCode" value="{{generatecode.code}}"
+                autocomplete="off" readonly>
+              </div>
+            </div>
+            <div class="col-md-3">
+              <div class="form-group">
+                <label for="exampleInputUsername1">First name</label>
+                <input type="text" class="form-control" id="txtFirstName" name="txtFirstName" data-validate="true"
+                  placeholder="Enter first name" maxlength="50" autocomplete="off" value="{{data.first_name}}">
+                  <span class="error-message fs-14" style="color: red;"></span>
+              </div>
+            </div>
+            <div class="col-md-3">
+              <div class="form-group">
+                <label for="exampleInputUsername1">Last name</label>
+                <input type="text" class="form-control" id="txtLastName" name="txtLastName" autocomplete="off" data-validate="true"
+                  placeholder=" Enter last name" value="{{data.last_name}}">
+                  <span class="error-message fs-14" style="color: red;"></span>
+              </div>
+            </div>
+            <div class="col-md-3 mt-2">
+              <label for="exampleInputUsername1" class="fs-14">Date of Joining </label>
+              <div id="datepicker-popup" class="input-group date datepicker navbar-date-picker">
+                <span class="input-group-addon input-group-prepend border-right">
+                  <span class="icon-calendar input-group-text calendar-icon"></span>
+                </span>
+                <input type="text" class="form-control" name="txtDOJ" id="txtDOJ">
+              </div>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-md-4">
+              <div class="form-group">
+                <label for="exampleInputUsername1">Mobile number</label>
+                <input type="text" class="form-control custom-input-border" id="txtMobileNumber" name="txtMobileNumber"
+                  placeholder="Enter mobile number" data-validate="true" autocomplete="off" value="{{data.mobile_number}}"
+                  oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');" maxlength="10">
+                  <span class="error-message fs-14" style="color: red;"></span>
+              </div>
+            </div>
+            <div class="col-md-4">
+              <div class="form-group">
+                <label for="exampleInputUsername1">Email</label>
+                <input type="text" class="form-control custom-input-border" id="txtEmail" name="txtEmail" data-validate="true"
+                  placeholder="Enter email" autocomplete="off" value="{{data.email}}">
+                <small id="emailHelp" class="form-text text-muted"></small>
+                <span class="error-message fs-14" style="color: red;"></span>
+              </div>
+            </div>
+            <div class="col-md-4">
+              <div class="form-group">
+                  <label>Image <small style="color: red;">*Ratio 1:1</small></label>
+                  <input type="file" name="employeeImg" id="employeeImg" class="file-upload-default" data-validate="true">
+                  <span class="error-message fs-14" style="color: red;"></span>
+                  <div class="input-group col-xs-12">
+                      <input type="text" class="form-control file-upload-info custom-input-border"
+                          disabled="" placeholder="Upload Image">
+                      <span class="input-group-append">
+                          <button class="file-upload-browse btn btn-primary" type="button"
+                              onclick="handleFileUpload('employeeImg')">Upload</button>
+                      </span>
+                  </div>
+              </div>
+          </div>
+          </div>
+          <div class="row">
+            <div class="col-md-5">
+              <div class="form-group">
+                <label for="exampleInputUsername1">Address</label>
+                <textarea class="form-control custom-input-border" id="txtAddress" name="txtAddress" rows="3" autocomplete="off"
+                  maxlength="500" data-validate="true">{{data.adddress}}</textarea>
+                  <span class="error-message fs-14" style="color: red;"></span>
+              </div>
+            </div>
+            <div class="col-md-5">
+             <div class="form-group">
+                <div class="text-center">
+                  <img class="img-fluid rounded" height="150" width="150" id="previewImage"
+                    src="/static/images/no-img-avatar.png">
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="content-wrapper">
+      <div class="card">
+        <div class="card-body">
+          <h5 class="card-description"> Account information </h5>
+          <div class="row">
+            <div class="col-md-6">
+              <div class="form-group">
+                <label for="exampleInputUsername1">Username</label>
+                <input type="text" class="form-control custom-input-border" id="txtUsername" name="txtUsername" data-validate="true" 
+                  placeholder="Enter Username" autocomplete="off" value="{{data.username}}">
+                  <span class="error-message fs-14" style="color: red;">{{errors.message.username|join:""}}</span>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="form-group">
+                <label for="exampleInputUsername1">User group</label>{{data}}
+                <select class="form-select" aria-label="Default select example" id="ddlUsergroup" name="ddlUsergroup"  data-validate="true">
+                  <option value="0"> Select User group</option>
+                  {% for usergroup in usergroup %}
+                    <option value="{{usergroup.usergroup_id}}" {% if data.usergroup == usergroup.usergroup_id %}selected{% endif %}>
+                    {{usergroup.usergroup_name}}</option>
+                  {% endfor %}
+                </select>
+                <span class="error-message fs-14" style="color: red;"></span>
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-md-6">
+                <div class="form-group">
+                  <label for="Password">Password<small class="text-danger">(Min 8 Characters)</small></label>
+                  <div class="input-group">
+                      <input type="password" class="form-control custom-input-border" id="txtPassword"
+                          name="txtPassword" placeholder="Enter old password" autocomplete="off" data-validate="true" >
+                      <div class="input-group-append">
+                          <span id="togglePassword" class="input-group-text cursor-pointer">
+                              <i class="mdi mdi-eye" id="eyeIcon"></i>
+                          </span>
+                      </div>
+                      
+                  </div>
+                  <span id="spanpassword" class="text-danger mt-0 p-0"></span>
+                </div> 
+              </div>
+              <div class="col-md-6">
+                <div class="form-group">
+                  <label for="exampleInputConfirmPassword1">Confirm Password</label>
+                  <input type="password" class="form-control custom-input-border" id="txtConfirmPassword" data-validate="true" 
+                    name="txtConfirmPassword" placeholder="Enter confirm password" minlength="8" autocomplete="off">
+                    <span class="error-message fs-14" style="color: red;"></span>
+                  <span id="spanConfirmpassword" class="text-danger mt-0 p-0 fs-14"></span>
+                </div>
+              </div>
+            </div>
+            <div class="justify-content-end">
+              <button type="submit" class="btn btn-primary me-2" id="btnSave">{% if edit %} Update {% else %}Submit {% endif %}</button>
+              <a href="/employee/employee-list/" class="btn btn-success me-2">Go to list</a>
+              <button class="btn btn-light" id="btnCancel">Cancel</button>
+              <input type="hidden" id="hiddenEdit" name="hiddenEdit" value="{{edit}}">
+              <input type="hidden" name="hiddenEmployeeId" id="hiddenEmployeeId" value="{{employee_id}}">
+            </div>
+          </div>
+        </div>
+      </div>
+  </form>
+</div>
+
+{% endblock content %}
+{% block footer %}
+<script>
+  var employee_id ='{{employee_id}}'
+  var get_doj_date ='{{date_of_join}}'
+  $(document).ready(function () {
+
+    // Clear input Message ::
+    clearErrorMessageOnInput('#frmEmployee');
+
+    $('#ddlUsergroup').select2({
+      minimumResultsForSearch: 0 // Ensures the search box is always visible
+    });
+
+    $("#txtConfirmPassword").keyup(checkPasswordMatch);
+
+    if (employee_id !== "") {
+      editEmployee(employee_id);
+      // Parse the date
+      let date = new Date(get_doj_date);
+        let day = String(date.getDate()).padStart(2, '0');
+        let month = String(date.getMonth() + 1).padStart(2, '0'); // Months are zero-indexed
+        let year = date.getFullYear();
+
+        let formattedDate = `${day}-${month}-${year}`;
+        $('#txtDOJ').val(formattedDate);
+        $('#txtDOJ').addClass('input-readonly');
+        $('#txtDOJ').attr('readonly',true);
+    } else {
+      // Initialize datepicker with today's date if employee_id is empty
+      var today = new Date();
+      $('#txtDOJ', '#datepicker-popup').datepicker({
+          format: 'dd/mm/yyyy',
+          startDate: '+0d',
+          autoclose: true
+      }).datepicker('setDate', today);
+}});
+
+  function checkPasswordMatch() {
+    var password = $("#txtPassword").val();
+    var confirmPassword = $("#txtConfirmPassword").val();
+    if (password != confirmPassword) {
+      $("#spanConfirmpassword").removeClass("text-success");
+      $("#spanConfirmpassword").addClass("text-danger");
+      $("#spanConfirmpassword").text("Passwords does not match!");
+    } else {
+      $("#spanConfirmpassword").removeClass("text-danger");
+      $("#spanConfirmpassword").addClass("text-success");
+      $("#spanConfirmpassword").text("Passwords match.");
+    }
+  }
+
+  $('#togglePassword').on('click', function() {
+        const passwordField = $('#txtPassword');
+        const eyeIcon = $('#eyeIcon');
+
+        // Toggle password visibility
+        const isPasswordVisible = passwordField.attr('type') === 'text';
+        passwordField.attr('type', isPasswordVisible ? 'password' : 'text');
+
+        // Toggle eye icon
+        eyeIcon.toggleClass('mdi-eye mdi-eye-off');
+    });
+
+  $('#txtPassword').bind('keyup', () => {
+    $('#txtPassword').removeClass('error')
+    $('#spanpassword').text('')
+  })
+
+  $("#txtPassword").on("keypress", function (e) {
+    var key = e.which || e.keyCode;
+    if (key === 13) {
+      postMessage();
+      e.preventDefault();
+    }
+  });
+
+  function editEmployee(){
+    fetch(`/employee/edit-employee/?employee_id=${employee_id}`, { method: 'GET' })
+      .then(res => res.json())
+      .then(data => {
+        
+          $('#txtEmployeeCode').val(data.employee_no).focus()
+          $('#txtFirstName').val(data.first_name)
+          $('#txtLastName').val(data.last_name)
+          // $('#hiddenDoj').val(data.doj)
+          $('#txtMobileNumber').val(data.mobile_number)
+          $('#txtEmail').val(data.email)
+          $('#txtAddress').val(data.address)
+          $('#txtUsername').val(data.username) 
+          $('#ddlUsergroup').val(data.usergroup).trigger('change')
+          $('#previewImage').attr('src', data.employee_image);
+          $('#hiddenEdit').val('edit');
+          $('#hiddenEmployeeId').val(data.employee_id);
+          $('#employeeImg').removeAttr('data-validate');
+          $('#txtPassword').removeAttr('data-validate');
+          $('#txtConfirmPassword').removeAttr('data-validate');
+          $('#btnSave').text('Update')
+          $('#txtTitle').text('Edit Employee')
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+
+      }).catch(error => {
+          console.error('Error:', error);
+
+      });
+  }
+
+</script>
+{% endblock footer %}

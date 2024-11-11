@@ -1,0 +1,182 @@
+{% extends 'main.html' %}
+{% load static %}
+{% block content %}
+
+<div class="main-panel">
+    <div id="frmProduct">
+        <form method="POST" action="{% url 'product' %}" enctype="multipart/form-data" onsubmit="return check_validate_forms('#frmProduct')">
+            {% csrf_token %}
+            <div class="content-wrapper">
+                <div class="card">
+                    <div class="card-body">
+                        <h4 class="card-title" id="txtTitle">Add product</h4>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label for="exampleInputUsername1">Product name</label>
+                                    <input type="text" class="form-control custom-input-border" id="txtProductName"
+                                        name="txtProductName" placeholder="Enter your product name" maxlength="20" autocomplete="off" data-validate="true" value="{{data.product_name}}">
+                                    <span class="error-message fs-14" style="color: red;">{{errors.message.product_name|join:""}}</span>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label for="exampleInputUsername1">Category name</label>
+                                    <select class="form-select" aria-label="Default select example" id="ddlCategory" name="ddlCategory" data-validate="true">
+                                        <option value="0"> Select category</option>
+                                        {% for category in category %}
+                                            <option value="{{category.categoryid}}" {% if data.category == category.categoryid %}selected{% endif %}>
+                                            {{category.category_name}}</option>
+                                        {% endfor %}
+                                    </select>
+                                    <span class="error-message fs-14" style="color: red;"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label for="exampleInputUsername1">Brand name</label>
+                                    <select class="form-select" aria-label="Default select example" id="ddlBrand" name="ddlBrand" data-validate="true">
+                                        <option value="0"> Select brand</option>
+                                        {% for brand in brand %}
+                                            <option value="{{brand.brand_id}}" {% if data.brand == brand.brand_id %}selected{% endif %}>
+                                            {{brand.brand_name}}</option>
+                                        {% endfor %}
+                                    </select>
+                                    <span class="error-message fs-14" style="color: red;"></span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label for="exampleInputUsername1">Unit name</label>
+                                    <select class="form-select" aria-label="Default select example" id="ddlUnit" name="ddlUnit" data-validate="true">
+                                        <option value="0"> Select unit</option>
+                                        {% for unit in unit %}
+                                            <option value="{{unit.unit_id}}" {% if data.unit == unit.unit_id %}selected{% endif %}>
+                                            {{unit.unit_name}}</option>
+                                        {% endfor %}
+                                    </select>
+                                    <span class="error-message fs-14" style="color: red;"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label for="exampleInputUsername1">MRP </label>
+                                    <input type="number" class="form-control custom-input-border" id="txtMRP" name="txtMRP"
+                                        placeholder="Enter MRP"
+                                        oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');"
+                                        maxlength="5" data-validate="true" value="{{data.mrp}}" autocomplete="off">
+                                    <span class="error-message fs-14" style="color: red;"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label for="exampleInputUsername1">Customer price</label>
+                                    <input type="number" class="form-control custom-input-border" id="txtCustomerPrice"
+                                        name="txtCustomerPrice" placeholder="Enter customer price"
+                                        oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');"
+                                        maxlength="5" data-validate="true" value="{{data.customer_price}}" autocomplete="off">
+                                    <span class="error-message fs-14" style="color: red;"></span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label for="exampleInputUsername1">Description</label>
+                                    <textarea class="form-control custom-input-border" id="txtDescription"
+                                        name="txtDescription" rows="3" data-validate="true" autocomplete="off">{{data.desc}}</textarea>
+                                    <span class="error-message fs-14" style="color: red;"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label>Image <small style="color: red;">*Ratio 1:1</small></label>
+                                    <input type="file" name="productImg" id="productImg" class="file-upload-default" data-validate="true">
+                                    <span class="error-message fs-14" style="color: red;"></span>
+                                    <div class="input-group col-xs-12">
+                                        <input type="text" class="form-control file-upload-info custom-input-border"
+                                            disabled="" placeholder="Upload Image">
+                                        <span class="input-group-append">
+                                            <button class="file-upload-browse btn btn-primary" type="button"
+                                                onclick="handleFileUpload('productImg')">Upload</button>
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="text-center">
+                                    <img class="img-fluid rounded" height="150" width="150" id="previewImage"
+                                        src="/static/images/no-img-avatar.png">
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                    <br>
+                    <div class="ms-5">
+                        <button type="submit" class="btn btn-primary me-2" id="btnSave">Submit</button>
+                        <a href="/product/product-list/" class="btn btn-success me-2">Go to list</a>
+                        <button class="btn btn-light" id="btnCancel">Cancel</button>
+                        <input type="hidden" id="hiddenEdit" name="hiddenEdit" value="{{edit}}">
+                        <input type="hidden" name="hiddeProductId" id="hiddeProductId" value="{{product_id}}">
+                    </div>
+                    <br>
+                </div>
+            </div>
+
+        </form>
+    </div>
+</div>
+
+{% endblock content %}
+{% block footer %}
+<script>
+    var product_id ='{{product_id}}'
+    $(document).ready(function () {
+        $('#ddlCategory').select2({
+            minimumResultsForSearch: 0 // Ensures the search box is always visible
+        });
+        $('#ddlBrand').select2({
+            minimumResultsForSearch: 0 // Ensures the search box is always visible
+        });
+        $('#ddlUnit').select2({
+            minimumResultsForSearch: 0 // Ensures the search box is always visible
+        });
+
+        clearErrorMessageOnInput('#frmProduct');
+
+        if (product_id != "") {
+            editProduct(product_id);
+        }
+    });
+    // Binded data in edit action::
+    function editProduct(product_id) {
+        fetch(`/product/edit-product/?product_id=${product_id}`, { method: 'GET' })
+            .then(res => res.json())
+            .then(data => {
+
+                $('#txtProductName').val(data.product_name).focus()
+                $('#ddlCategory').val(data.category).trigger('change')
+                $('#ddlBrand').val(data.brand).trigger('change')
+                $('#ddlUnit').val(data.unit).trigger('change')
+                $('#txtMRP').val(data.mrp)
+                $('#txtCustomerPrice').val(data.customer_price) 
+                $('#txtDescription').val(data.desc) 
+                $('#previewImage').attr('src', data.product_image);
+                $('#hiddenEdit').val('edit');
+                $('#hiddeProductId').val(data.product_id);
+                $('#productImg').removeAttr('data-validate');
+                $('#btnSave').text('Update')
+                $('#txtTitle').text('Edit Product')
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+
+            }).catch(error => {
+                console.error('Error:', error);
+
+            });
+}
+</script>
+
+{% endblock footer %}

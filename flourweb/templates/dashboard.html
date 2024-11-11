@@ -1,0 +1,208 @@
+{% extends "main.html" %}
+{% load static %}
+{% block content %}
+{% load permission_tags %}
+{% get_admin as admin %}
+<div class="main-panel">
+    <div class="content-wrapper">
+        <div class="row">
+            <input type="hidden" name="hdnISStock" id="hdnISStock" value="{{admin.stock_verified}}">
+            <input type="hidden" name="hdnISSuperAdmin" id="hdnISSuperAdmin" value="{{request.session.is_super_admin}}">
+            <div class="col-sm-12">
+                <div class="home-tab">
+                    <div class="d-sm-flex align-items-center justify-content-between">
+                        <!-- <div>
+          <div class="btn-wrapper">
+            <a href="#" class="btn btn-otline-dark align-items-center"><i class="icon-share"></i> Share</a>
+            <a href="#" class="btn btn-otline-dark"><i class="icon-printer"></i> Print</a>
+            <a href="#" class="btn btn-primary text-white me-0"><i class="icon-download"></i> Export</a>
+          </div>
+        </div> -->
+                    </div>
+                    <div class="container">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <a {% if request.session.is_super_admin %} href="/store/point-on-sale/" {% else %} href="" {% endif %}>
+                                    <img src="{% static 'images/Kids Studying from Home-bro.png' %}" width="200" alt="Kids Studying from Home">
+                                </a>
+                            </div>                            
+                            <div class="col-md-4">
+                                <a {% if request.session.is_super_admin %}  href="/analytics/" {% else %} href="" {% endif %}>
+                                    <img src="{% static 'images/Dark analytics-bro.png' %}" width="200" alt="Image 1">
+                                </a>
+                            </div>
+                            <div class="col-md-4">
+                                <a {% if request.session.is_super_admin %}  href="/store/purchase-invoice/" {% else %} href="" {% endif %}>
+                                    <img src="{% static 'images/Printing invoices-bro.png' %}" width="200" alt="Image 2">
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="tab-content tab-content-basic">
+                        <div class="tab-pane fade show active" id="overview" role="tabpanel" aria-labelledby="overview">
+                            <div class="row">
+                                <div class="col-lg-8 d-flex flex-column">
+                                    <div class="row flex-grow">
+                                        <div class="col-12 col-lg-4 col-lg-12 grid-margin stretch-card">
+                                            <div class="card card-rounded">
+                                                <div class="card-body">
+                                                    <div class="d-sm-flex justify-content-between align-items-start">
+                                                        <div>
+                                                            <h4 class="card-title card-title-dash">
+                                                                Sales Line Chart</h4>
+                                                            <h5 class="card-subtitle card-subtitle-dash">
+                                                                Success is the result of preparation, hard work, and
+                                                                learning from failure.</h5>
+                                                        </div>
+                                                        <div id="performanceLine-legend"></div>
+                                                    </div>
+                                                    <div class="chartjs-wrapper mt-4">
+                                                        <canvas id="performanceLine" width=""></canvas>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-lg-4 d-flex flex-column">
+                                    <div class="row flex-grow">
+                                        <div class="col-md-6 col-lg-12 grid-margin stretch-card">
+                                            <div class="card card-rounded">
+                                                <div class="card-body">
+                                                    <div class="row">
+                                                        <div class="col-lg-6">
+                                                            <div
+                                                                class="d-flex justify-content-between align-items-center mb-2 mb-sm-0">
+                                                                <div class="circle-progress-width">
+                                                                    <div id="totalVisitors"
+                                                                        class="progressbar-js-circle pr-2">
+                                                                    </div>
+                                                                </div>
+                                                                <div>
+                                                                    <p class="text-small mb-2">Today
+                                                                        Stocks</p>
+                                                                    <h4 class="mb-0 fw-bold">100</h4>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-lg-6">
+                                                            <div
+                                                                class="d-flex justify-content-between align-items-center">
+                                                                <div class="circle-progress-width">
+                                                                    <div id="visitperday"
+                                                                        class="progressbar-js-circle pr-2">
+                                                                    </div>
+                                                                </div>
+                                                                <div>
+                                                                    <p class="text-small mb-2">Today income
+                                                                    </p>
+                                                                    <h4 class="mb-0 fw-bold">₹ 10000</h4>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6 col-lg-12 grid-margin stretch-card">
+                                            <div class="card bg-primary card-rounded">
+                                                <div class="card-body pb-0">
+                                                    <h4 class="card-title card-title-dash text-white mb-4">
+                                                        Stock Summary</h4>
+                                                    <div class="row">
+                                                        <div class="col-sm-4">
+                                                            <p class="status-summary-ight-white mb-1">Stock Balance
+                                                            </p>
+                                                            <h2 class="text-info">2</h2>
+                                                        </div>
+                                                        <div class="col-sm-8">
+                                                            <div class="status-summary-chart-wrapper pb-4">
+                                                                <canvas id="status-summary"></canvas>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+
+        <!---------------------------------  stock Modal ----------------------------------->
+        <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body d-flex justify-content-center">
+                        <img src="{% static 'images/Work time-amico.png' %}" width="250">
+                    </div>
+                    <div id="blinking-text">
+                        <h5 class="text-center m-4" style="font-size: 15px;color: rgb(111, 0, 255);">
+                            Please update your stock to enhance your business growth.</h5>
+                    </div>
+                    <div class="modal-footer">
+                        <a href="/store/stock/" class="btn btn-primary">Stock update</a>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+    </div>
+    <!-- content-wrapper ends -->
+    <!-- partial:partials/_footer.html -->
+    <footer class="footer">
+        <div class="d-sm-flex justify-content-center justify-content-sm-between">
+            <!-- <span class="text-muted text-center text-sm-left d-block d-sm-inline-block"> <a
+                    href="" target="_blank">velan admin template</a>
+                </span> -->
+            <!-- <span class="float-none float-sm-end d-block mt-1 mt-sm-0 text-center">Copyright © 2024. All
+                rights reserved.</span> -->
+        </div>
+    </footer>
+    <!-- partial -->
+</div>
+
+
+
+
+
+{% endblock content %}
+
+{% block footer %}
+
+<script>
+    $(document).ready(function () {
+    // Get the value of the hidden input
+    let stock_verified = $('#hdnISStock').val();
+    let super_admin = $('#hdnISSuperAdmin').val();
+
+    // Check if stock_verified is 'True'
+    if (stock_verified == 'False' && super_admin == 'True') {
+        // Show the modal
+        $("#exampleModal").modal('show')
+        $("#exampleModal").modal({
+            backdrop: 'static',
+            keyboard: false // Uncomment if you want to disable closing the modal with the keyboard
+        });
+    }
+});
+
+
+
+
+</script>
+
+{% endblock footer %}

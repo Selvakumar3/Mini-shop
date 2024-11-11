@@ -1,0 +1,237 @@
+{% extends 'main.html' %}
+{% load static %}
+{% block content %}
+
+<div class="main-panel">
+    <div class="content-wrapper">
+        <!----------------------------------------------------------table--------->
+        <div class="card mb-3">
+            <div class="card-body">
+                <h4 class="card-title">List of Logs</h4>
+                <div class="row">
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label for="Type">Type</label>
+                            <select class="form-select" aria-label="Default select example" id="ddllog_type"
+                                name="ddllog_type">
+                                <option value="">Select Type</option>
+                                <option value="Web">Web</option>
+                                <option value="API">API</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div id="btnDate" class="btn btn-light mt-4">
+                            <i class="mdi mdi-calendar"></i>&nbsp;
+                            <span class="me-1">Select Date</span>
+                            <i class="fa fa-caret-down"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover table-bordered" id="tblLogs">
+                        <thead>
+                            <tr>
+                                <th>S.No</th>
+                                <th>Log Date</th>
+                                <th>Transaction Name</th>
+                                <th>Mode</th>
+                                <th>Log Type</th>
+                                <th>Log Message</th>
+                                <th>IPAddress</th>
+                            </tr>
+                        </thead>
+
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!---------------------------------  Log Modal ----------------------------------->
+<div class="modal fade" id="logModal" tabindex="-1" aria-labelledby="logModal" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Log Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p id="txtError"></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock content %}
+{% block footer %}
+<script>
+    var FromDate;
+    var ToDate;
+    var count = 1
+    var dataTable;
+    var type = ''
+    var date = new Date();
+    var start_date = date.getFullYear() + "-" + (date.getMonth() + 1) + "-" + date.getDate();
+    var end_date = date.getFullYear() + "-" + (date.getMonth() + 1) + "-" + date.getDate();
+    $(document).ready(function () {
+        datatablebind();
+        FromDate = moment();
+        ToDate = moment();
+
+        $("#btnDate").daterangepicker(
+            {
+                ranges: {
+                    'Today': [moment(), moment()],
+                    'Yesterday': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
+                    'Last 7 Days': [moment().subtract(6, 'days'), moment()],
+                    "This Month": [moment().startOf("month"), moment().endOf("month")],
+                    "Last 30 Days": [moment().subtract("days", 29), moment()],
+                    "Last Month": [
+                        moment().subtract("month", 1).startOf("month"),
+                        moment().subtract("month", 1).endOf("month"),
+                    ],
+                },
+                start_date: FromDate, // Set default "From" date to the start of the current month
+                end_date: ToDate,
+            },
+            getDate
+        );
+        getDate(FromDate, ToDate);
+
+        $('#ddllog_type').select2({ minimumResultsForSearch: 0 });
+
+        $('#ddllog_type').change(function (event) {
+            type = $(this).val();
+            dataTable.draw();
+        });
+    });
+    function getDate(start, end) {
+        start_date = start.format("YYYY-MM-DD");
+        end_date = end.format("YYYY-MM-DD");
+        dataTable.draw()
+        $("#btnDate span").html(
+            start.format("MMMM D, YYYY") + " - " + end.format("MMMM D, YYYY")
+        );
+    }
+
+    // Datatable ::
+    function datatablebind() {
+        dataTable = $("#tblLogs").DataTable({
+            responsive: true,
+            autoWidth: false,
+            aLengthMenu: [
+                [10, 30, 50, -1],
+                [10, 30, 50, "All"]
+            ],
+            columnDefs: [
+                {
+                    className: "dt-body-center",
+                    targets: [0, 1],
+                    orderable: false
+                }
+            ],
+            language: {
+                search: "_INPUT_", // Removes the 'Search' field label
+                searchPlaceholder: "Search", // Placeholder for the search box
+                sLengthMenu: "_MENU_",
+                sInfo: "_START_ to _END_ of _TOTAL_",
+                sInfoEmpty: "0 to 0 of 0",
+                sInfoFiltered: "(filtered from _MAX_ total records)"
+            },
+            iDisplayLength: 10,
+            processing: true,
+            serverSide: true,
+            ajax: {
+                url: '/settings/log_list_dt/',
+                type: 'GET',
+                data: function (data) {
+                    data.start_date = start_date
+                    data.end_date = end_date
+                    data.type = type
+                }
+            },
+            columns: [
+                {
+                    data: null,
+                    width: 20,
+                    orderable: false,
+                    render: function (data, type, row, meta) {
+                        return meta.row + meta.settings._iDisplayStart + 1;
+                    }
+                },
+                {
+                    data: null,
+                    class: "text-center",
+                    render: function (data) {
+                        return (data.log_date != '') ? data.log_date : '-';
+                    }
+                },
+                {
+                    data: null,
+                    class: "text-left",
+                    render: function (data) {
+                        return (data.transaction_name != '') ? data.transaction_name : '-';
+                    }
+                },
+                {
+                    data: null,
+                    class: "text-left",
+                    render: function (data) {
+                        return (data.mode != '') ? data.mode : '-';
+                    }
+                },
+                {
+                    data: null,
+                    class: "text-left",
+                    render: function (data) {
+                        return (data.log_type != '') ? data.log_type : '-';
+                    }
+                },
+                {
+                    data: null,
+                    class: "text-left",
+                    render: function (data) {
+                        return (data.log_message != '') ? data.log_message : '-';
+                        // return `<td class="text-center">
+                        //             <a class="btn btn-success btn-rounded btn-icon" onclick="ShowLogMOdal(${data.log_message})" title="View">
+                        //                 <i class="ti-pencil-alt" style="font-size: 20px;"></i>
+                        //             </a>
+                        //         </td>`;
+                    }
+                },
+                {
+                    data: null,
+                    class: "text-center",
+                    render: function (data) {
+                        return (data.Ip_address != '') ? data.Ip_address : '-';
+                    }
+                },
+            ],
+        });
+
+        // Append elements into the datatable plugin for spacing on top
+        $('.dataTables_filter input[type="search"]').css("width", "9rem");
+        $(".dataTables_filter").parent().addClass("d-flex justify-content-end");
+
+        $(".dataTables_filter").parent().append(`
+        <div class="add-group">
+            <a class="btn btn-light ms-3" onClick="location.reload()">
+                <img src='${window.location.origin}/static/images/icons/re-fresh.svg' alt="Refresh">
+            </a>
+        </div>
+        <a  class="btn btn-info text-white ms-2" title="Download Excel" onclick="ExporttabletoExcell('tblLogs','Log_List',6)"><i class="icon-download"></i> Excel</a>
+        <a class="btn btn-danger text-white ms-2" onclick="ExporttabletoPdf('tblLogs','Log_List',6)"><i  class="ti-file btn-icon-append"></i> PDF</a>
+    `);
+    }
+
+    function ShowLogModal(content) {
+        $('#txtError').text(content);
+        $('#logModal').modal('show');
+    }
+</script>
+{% endblock footer %}

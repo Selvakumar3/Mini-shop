@@ -1,0 +1,335 @@
+{% extends 'main.html' %}
+{% load static %}
+{% block header %}
+<link rel="stylesheet" href="{% static 'plugins/dynatree/ui.dynatree.css' %}">
+{% endblock header %}
+{% block content %}
+
+
+<div class="main-panel">
+  <div>
+    <div class="content-wrapper">
+      <div class="card">
+        <div class="card-body">
+          <h4 class="card-title" id="txtTitle">{% if edit %} Edit {% else %} Add {% endif %} User Group</h4>
+          <form method="POST" action="{% url 'postusergroup' %}" enctype="multipart/form-data"
+            id="frmUserGroupPermission" onsubmit="return usergroup_validate_forms()">
+            {% csrf_token %}
+            <div class="row">
+              <div class="col-md-4 grid-margin stretch-card">
+                <div class="form-group" id="divUserGroup">
+                  <label for="exampleInputUsername1">Usergroup name</label>
+                  <input type="text" class="form-control custom-input-border" id="txtusergroupName"
+                    name="txtusergroupName" autocomplete="off" placeholder="Enter Usergroup" maxlength="50"
+                    data-validate="true" value="{{data.usergroup_name}}">
+                  <span class="error-message fs-14" style="color: red;"
+                    id="spanUserError">{{errors.message.usergroup_name|join:""}}</span>
+                </div>
+              </div>
+              <div class="col-md-5 grid-margin stretch-card">
+                <div class="mb-3">
+                  <label class="form-label fw-bold">List of Menus</label>
+                  <div id="divMenuList">
+                  </div>
+                </div>
+              </div>
+            </div>
+            <button type="submit" id="btnSave" class="btn btn-primary me-2 ms-2">{% if edit %} Update {% else %}Submit {% endif %}</button>
+            <button type="button" class="btn btn-light"  id="btnCancel">Cancel</button>
+
+            <input type="hidden" id="EditId" name="EditId">
+            <input type="hidden" id="hiddenedit" name="hiddenedit">
+            <input type="hidden" id="menuIdDet" name="menuIdDet" value="{{data.menuIdDet}}">
+            <input type="hidden" id="txtUpdateId" name="txtUpdateId" value="{{usergroup_id}}">
+            <input type="hidden" id="txtEdit" name="txtEdit" value="{{edit}}">
+            <input type="hidden" id="errorDet" name="errorDet" value="{{data.menuIdDet}}">
+
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="content-wrapper">
+    <div class="card mb-3">
+      <div class="card-body">
+        <h4 class="card-title">List of usergroups</h4>
+        <div class="table-responsive">
+          <table class="table table-hover table-bordered border-bottom" id="tblUserGroupList">
+            <thead>
+              <tr>
+                <th>S.No</th>
+                <th>User Group</th>
+                <th class="text-center">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              <!-- Rows will be populated here -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock content %}
+{% block footer %}
+<script type="text/javascript" src="{% static 'plugins/dynatree/Jquery-ui.js' %}"></script>
+<script type="text/javascript" src="{% static 'plugins/dynatree/Jquery.dynatree.js' %}"></script>
+<script>
+
+  var treeData = [];
+  var selKeys;
+  var MenuList = "";
+  var bind = "{{bind}}"
+  var userGroupid = "{{usergroup_id}}"
+
+  $(document).ready(function () {
+    // Clear input Message ::
+    clearErrorMessageOnInput('#frmUserGroupPermission');
+    Loadmenu();
+    datatablebind();
+  });
+
+  function Loadmenu() {
+
+    jQuery.ajax({
+      type: "GET",
+      url: "/getusergroupmenuname/",
+      async: false,
+      data: {
+
+      },
+      dataType: 'json',
+      success: function (responseData) {
+        MenuList = responseData;
+        bindMenu();
+      }
+    });
+  }
+
+  function bindMenu() {
+    $.each(MenuList, function (idx, val) {
+      if (this.is_module) {
+        if (this.menu_id == "1") {
+          treeData.push({ "title": this.menu_name, "key": this.menu_id, select: true, unselectable: true });
+          var LST = [];
+          LST.push({ "menu_id": this.menu_id });
+          $("#menuIdDet").val(JSON.stringify(LST));
+        }
+        else {
+          treeData.push({ "title": this.menu_name, "key": this.menu_id, "children": [] });
+        }
+      }
+      else {
+        $.each(treeData, function () {
+          if (this.key == val.parent_id) {
+            this.children.push({ "title": val.menu_name, "key": val.menu_id });
+          }
+        });
+      }
+
+    });
+
+    $("#divMenuList").dynatree({
+      autoCollapse: true,
+      checkbox: true,
+      selectMode: 3,
+      children: treeData,
+      debugLevel: 0,
+      onSelect: function (select, node) {
+        selKeys = $.map(node.tree.getSelectedNodes(), function (node) {
+          return node.data.key;
+        });
+        var partsel = new Array();
+        $(".dynatree-partsel:not(.dynatree-selected)").each(function () {
+          var node = $.ui.dynatree.getNode(this);
+          partsel.push(node.data.key);
+        });
+        selKeys = selKeys.concat(partsel);
+
+        //$("#menuIdDet").val(selKeys.join(", "));
+        var LST = [];
+        $.each(selKeys, function (idx, val) {
+          LST.push({
+            "menu_id": val
+          });
+        });
+
+        $("#menuIdDet").val(JSON.stringify(LST));
+
+
+      }
+    });
+    errorBind();
+  }
+
+
+  function errorBind() {
+    if ($('#errorDet').val() != "") {
+      let menu = JSON.parse($('#errorDet').val());
+
+      $.each(menu, function (idx, val) {
+        $("#divMenuList").dynatree("getRoot").visit(function (node) {
+          if (node.data.key == $.trim(val.menuId)) {
+            node.select(true);
+          }
+        });
+      });
+    };
+
+  };
+
+  function EditRow(UID) {
+    $("#txtusergroupName").val($.trim($("#trMenuList" + UID + " td:eq(1)").text()));
+    $('#txtUpdateId').val(UID);
+    $('#txtEdit').val('edit');
+    $("#txtTitle").text("Edit UserGroup");
+    $("#btnSave").text("Update");
+    $("#btnClear").text("Cancel");
+    $("#txtusergroupName").focus();
+
+    dynatreeBinded(UID)
+    
+  }
+
+  if(bind != ""){
+    dynatreeBinded(userGroupid)
+  }
+
+  function dynatreeBinded(UID){
+    UserGroupId = UID;
+    var str = $("#trMenuList" + UID).attr("MID");
+    var test = str.replace(/[\[\]']/g, '');
+    var MList = test.split(",");
+
+    $("#divMenuList").dynatree("getRoot").visit(function (node) {
+      node.select(false);
+    });
+
+    $.each(MList, function (idx, val) {
+      $("#divMenuList").dynatree("getRoot").visit(function (node) {
+        if (node.data.children == null) {
+          if (node.data.key == $.trim(val)) {
+            node.select(true);
+          }
+        }
+      });
+    });
+    // Scroll Top
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+
+  }
+
+  // Datatable ::
+  function datatablebind() {
+    $("#tblUserGroupList").DataTable({
+      responsive: true,
+      autoWidth: false,
+      aLengthMenu: [
+        [10, 30, 50, -1],
+        [10, 30, 50, "All"]
+      ],
+      columnDefs: [
+        {
+          className: "dt-body-center",
+          targets: [0, 2],
+          orderable: false
+        }
+      ],
+      language: {
+        search: "_INPUT_", // Removes the 'Search' field label
+        searchPlaceholder: "Search", // Placeholder for the search box
+        sLengthMenu: "_MENU_",
+        sInfo: "_START_ to _END_ of _TOTAL_",
+        sInfoEmpty: "0 to 0 of 0",
+        sInfoFiltered: "(filtered from _MAX_ total records)"
+      },
+      iDisplayLength: 10,
+      processing: true,
+      serverSide: true,
+      ajax: {
+        url: '/usergroupdatatable/',
+        type: 'GET',
+        data: function (data) {
+          // Additional data can be sent if needed
+        }
+      },
+      "createdRow": function (row, data, dataIndex) {
+        $(row).attr('id', `trMenuList${data.usergroup_id}`);
+        $(row).attr('MID', `${data.Menu}`);
+
+      },
+      columns: [
+        {
+          data: null,
+          width: 20,
+          orderable: false,
+          render: function (data, type, row, meta) {
+            return meta.row + meta.settings._iDisplayStart + 1;
+          }
+        },
+        {
+          data: null,
+          class: "text-left",
+          render: function (data) {
+            return (data.usergroup_name != '') ? data.usergroup_name : '-';
+          }
+        },
+        {
+          data: null,
+          class: "text-center",
+          render: function (data) {
+            return `
+                            <td class="text-center">
+                                <a id="divMenu{{groupname.userGroupId}}" class="btn btn-success btn-rounded btn-icon" onclick="EditRow(${data.usergroup_id})" title="Edit">
+                                    <i class="ti-pencil-alt" style="font-size: 20px;"></i>
+                                </a>
+                                <a class="btn btn-danger btn-rounded btn-icon" href='/deleteusergroup/?usergroup_id=${data.usergroup_id}' onclick="confirmDelete(event, '${data.usergroup_name}')">
+                                    <i class="ti-trash"></i>
+                                </a>
+                        </td>`;
+          }
+        }
+      ],
+    });
+
+    // Append elements into the datatable plugin for spacing on top
+    $('.dataTables_filter input[type="search"]').css("width", "9rem");
+    $(".dataTables_filter").parent().addClass("d-flex justify-content-end");
+
+    $(".dataTables_filter").parent().append(`
+        <div class="add-group">
+            <a class="btn btn-light ms-3" onClick="location.reload()">
+                <img src='${window.location.origin}/static/images/icons/re-fresh.svg' alt="Refresh">
+            </a>
+        </div>
+        <a  class="btn btn-info text-white ms-2" title="Download Excel" onclick="ExporttabletoExcell('tblUserGroupList','Usergroup_List',2)"><i class="icon-download"></i> Excel</a>
+        <a class="btn btn-danger text-white ms-2" onclick="ExporttabletoPdf('tblUserGroupList','Usergroup_List',2)"><i  class="ti-file btn-icon-append"></i> PDF</a>
+    `);
+  }
+
+  function usergroup_validate_forms() {
+    // Clear any previous error messages
+    $('#spanUserError').text('');
+
+    // Validate usergroup name
+    if ($('#txtusergroupName').val() === "") {
+      $('#spanUserError').text('Usergroup name is required');
+      return false; // Stop further execution
+    }
+
+    // Validate menu selection
+    if ($('#menuIdDet').val() === "") {
+      alert('Please select at least one module');
+      return false; // Stop further execution
+    }
+
+    // If both validations pass, submit the form
+    $('#frmUserGroupPermission').submit();
+  }
+
+</script>
+
+{% endblock footer %}

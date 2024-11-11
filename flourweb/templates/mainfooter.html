@@ -1,0 +1,99 @@
+{% load static %}
+<!----------Jquery cdn -------------------->
+<script src="{% static 'js/jquery-3.6.1.min.js' %}"></script>
+<!----------- Custom js ------------------------------------->
+
+<script src="{% static 'js/admin/admin_main.js' %}"></script>
+<script src="{% static 'js/admin/dashboard.js' %}"></script>
+<!---------------Sweet alert -------------------------------------->
+
+<script src="{% static 'plugins/sweetalert2/sweetalert2.min.js' %}"></script>
+<!-------------------Main functionality-------------------------------->
+
+<script src="{% static 'js/vendor.bundle.base.js' %}"></script>
+<!--------------Datatables plugins------------------------------>
+
+<script src="{% static 'plugins/datatables/jquery.dataTables.min.js' %}"></script>
+<script src="{% static 'plugins/datatables/datatables.min.js' %}"></script>
+<!-------------------Table to excels----------------------------->
+
+<script src="{% static 'plugins/table2Excell/Jquery.table2excel.js' %}"></script>
+<!---------------------table to pdf------------------------------------->
+
+<script src="{% static 'plugins/htmltopdf/jspdf.min.js' %}"></script>
+<script src="{% static 'plugins/htmltopdf/jspdf.plugin.autotable.min.js' %}"></script>
+<!-------------------Dyna tree ------------------------------------------------>
+
+<script type="text/javascript" src="{% static 'plugins/dynatree/Jquery-ui.js' %}"></script>
+<script type="text/javascript" src="{% static 'plugins/dynatree/Jquery.dynatree.js' %}"></script>
+<!--------------------Moment-------------------------------------->
+
+<script src="{% static 'plugins/moment/moment.min.js' %}"></script>
+<!----------------------Select 2 ---------------------------------------->
+
+<script src="{% static 'plugins/select2/select2.min.js' %}"></script>
+<script src="{% static 'js/select2.min.js' %}"></script>
+
+<!------------------ Daterange Picker--------------------->
+<script src="{% static 'plugins/daterangepicker/daterangepicker.js' %}"></script>
+<!------------------ DatePicker--------------------->
+
+<script src="{% static 'plugins/bootstrap-datepicker/bootstrap-datepicker.min.js' %}"></script>
+
+<script src="{% static 'js/chart.umd.js' %}"></script>
+<script src="{% static 'js/progressbar.min.js' %}"></script>
+<script src="{% static 'js/chart.js' %}"></script>
+<script src="{% static 'js/off-canvas.js' %}"></script>
+<script src="{% static 'js/settings.js' %}"></script>
+<script src="{% static 'js/template.js' %}"></script>
+<script src="{% static 'js/hoverable-collapse.js' %}"></script>
+<script src="{% static 'js/jquery.cookie.js' %}"></script>
+<!-- <script src="{% static 'js/piechart.js' %}"></script> -->
+
+
+<!-- <script src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.js"></script> -->
+<!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script> -->
+<!-- <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script> -->
+
+
+<!-- Delete Popup Modal -->
+<div class="modal " id="modalDelete" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content modal-radius">
+      <div class="modal-body ">
+        <div class="text-left mb-2">
+          <h3 class="page-title fw-600" id="delete_modal_title"></h3>
+        </div>
+        <p class="mg-b-5" id="message_content"></p>
+        <div class="d-flex justify-content-left mg-t-20">
+          <button class="btn btn-light ms-2" data-dismiss="modal">Cancel</button> &nbsp; &nbsp;
+          <a id="comfirmModalDelete" class="btn btn-danger me-1">Delete</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% if messages %}
+{% for message in messages %}
+<script>
+  function showMsg(msg, type) {
+    const Toast = Swal.mixin({
+      toast: true,
+      position: 'top-end',
+      showConfirmButton: false,
+      timer: 3000,
+      timerProgressBar: true,
+    });
+
+    Toast.fire({
+      icon: (type == 1 ? 'success' : 'error'),
+      title: msg
+    })
+  }
+  var errorcode = '{{message.tags}}' == 'success' ? 1 : 2;
+  showMsg('{{message}}', errorcode);
+</script>
+
+{% endfor %}
+{% endif %}

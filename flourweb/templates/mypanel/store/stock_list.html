@@ -1,0 +1,284 @@
+{% extends 'main.html' %}
+{% load static %}
+{% block content %}
+
+<div class="main-panel">
+    <div class="content-wrapper">
+        <!----------------------------------------------------------table--------->
+        <div class="card mb-3">
+            <div class="card-body">
+                <h4 class="card-title">List of Stock</h4>
+                <div class="row">
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label for="exampleInputUsername1">Product name</label>
+                            <select class="form-select" aria-label="Default select example" id="ddlProduct" name="ddlProduct">
+                                <option value="0"> Select product</option>
+                                {% for product in product %}
+                                    <option value="{{product.product_id}}" {% if data.product == product.product_id %}selected{% endif %}
+                                    productName="{{product.product_name}}" mrp="{{product.mrp}}"salesAmount="{{product.customer_price}}" unitName="{{product.unit}}" unitId="{{product.unit}}">
+                                    {{product.product_name}}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label for="Batch">Batch no</label>
+                            <select class="form-select" aria-label="Default select example" id="ddlBatchNo" name="ddlBatchNo" >
+                                <option value="0">Select Batch no</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div id="btnDate" class="btn btn-light mt-4">
+                            <i class="mdi mdi-calendar"></i>&nbsp;
+                            <span class="me-1">Select Date</span>
+                            <i class="fa fa-caret-down"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover table-bordered border-bottom" id="tblStockList">
+                        <thead>
+                            <tr>
+                                <th>S.No</th>
+                                <th>Product name</th>
+                                <th>Unit name</th>
+                                <th>Batch No</th>
+                                <th>Created at</th>
+                                <th>Total stock</th>
+                                <th>Available stock</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+
+                        </tbody>
+                        <tfoot>
+                            <tr>
+                                <td colspan="5" class="text-right"><strong>Total:</strong></td>
+                                <td id="totalStock" class="text-center text-success">0</td>
+                                <td id="avblStock" class="text-center text-danger">0</td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock content %}
+{% block footer %}
+<script>
+    var FromDate;
+    var ToDate;
+    var count = 1
+    var dataTable;
+    var product_id = '0'
+    var stock_id = ''
+    var date = new Date();
+    var start_date = date.getFullYear() + "-" + (date.getMonth() + 1) + "-" + date.getDate();
+    var end_date = date.getFullYear() + "-" + (date.getMonth() + 1) + "-" + date.getDate();
+
+    $(document).ready(function () {
+        datatablebind();
+        FromDate = moment();
+        ToDate = moment();
+
+        $("#btnDate").daterangepicker(
+            {
+                ranges: {
+                    'Today': [moment(), moment()],
+                    'Yesterday': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
+                    'Last 7 Days': [moment().subtract(6, 'days'), moment()],
+                    "This Month": [moment().startOf("month"), moment().endOf("month")],
+                    "Last 30 Days": [moment().subtract("days", 29), moment()],
+                    "Last Month": [
+                        moment().subtract("month", 1).startOf("month"),
+                        moment().subtract("month", 1).endOf("month"),
+                    ],
+                },
+                start_date: FromDate, // Set default "From" date to the start of the current month
+                end_date: ToDate,
+            },
+            getDate
+        );
+        getDate(FromDate, ToDate);
+
+        $('#ddlProduct').select2({minimumResultsForSearch: 0});
+        $('#ddlBatchNo').select2({minimumResultsForSearch: 0});
+
+    // Once ddl change product against data binded in forms
+    $('#ddlProduct').change(function (event) {
+        product_id = $('#ddlProduct option:selected').val();
+        getBatchNo(product_id);
+        dataTable.draw()
+    })
+    $('#ddlBatchNo').change(function (event) {
+        stock_id = $('#ddlBatchNo option:selected').val();
+        dataTable.draw()
+    })
+
+    });
+    function getDate(start, end) {
+        start_date = start.format("YYYY-MM-DD");
+        end_date = end.format("YYYY-MM-DD");
+        dataTable.draw()
+        $("#btnDate span").html(
+            start.format("MMMM D, YYYY") + " - " + end.format("MMMM D, YYYY")
+        );
+    }
+
+    // CASCADE FOR Product AGAINST Batch ::
+    function getBatchNo(product_id) {
+        return $.ajax({
+            url: '/store/get-batch-no/',
+            data: { 'product_id': product_id },
+            dataType: 'json'
+        }).done(function (data) {
+            $('#ddlBatchNo').html("<option value='0'>Select Batch</option>");
+            $.each(data, function (index, val) {
+                $('#ddlBatchNo').append('<option prod_batch_no="' + val.batch_no + '" stockId="' + val.stock_id + '" stockQty="' + val.stock_qty + '" value="' + val.stock_id + '">' + val.batch_no + '</option>');
+            });
+        }).fail(function (jqXHR, textStatus, errorThrown) {
+            console.error("Error fetching batch numbers: " + textStatus, errorThrown);
+        });
+    }
+
+    // Datatable ::
+    function datatablebind() {
+        dataTable = $("#tblStockList").DataTable({
+            responsive: true,
+            autoWidth: false,
+            aLengthMenu: [
+                [10, 30, 50, -1],
+                [10, 30, 50, "All"]
+            ],
+            columnDefs: [
+                {
+                    className: "dt-body-center",
+                    targets: [0, 1],
+                    orderable: false
+                }
+            ],
+            language: {
+                search: "_INPUT_", // Removes the 'Search' field label
+                searchPlaceholder: "Search", // Placeholder for the search box
+                sLengthMenu: "_MENU_",
+                sInfo: "_START_ to _END_ of _TOTAL_",
+                sInfoEmpty: "0 to 0 of 0",
+                sInfoFiltered: "(filtered from _MAX_ total records)"
+            },
+            iDisplayLength: 10,
+            processing: true,
+            serverSide: true,
+            ajax: {
+                url: '/store/stock_list_dt/',
+                type: 'GET',
+                data: function (data) {
+                    data.start_date = start_date
+                    data.end_date = end_date
+                    data.product_id = product_id
+                    data.stock_id = stock_id
+                }
+            },
+            columns: [
+                {
+                    data: null,
+                    width: 20,
+                    orderable: false,
+                    render: function (data, type, row, meta) {
+                        return meta.row + meta.settings._iDisplayStart + 1;
+                    }
+                },
+                {
+                    data: null,
+                    class: "text-center",
+                    render: function (data) {
+                        return (data.product_name != '') ? data.product_name : '-';
+                    }
+                },
+                {
+                    data: null,
+                    class: "text-left",
+                    render: function (data) {
+                        return (data.unit_name != '') ? data.unit_name : '-';
+                    }
+                },
+                {
+                    data: null,
+                    class: "text-left",
+                    render: function (data) {
+                        return (data.batch_no != '') ? data.batch_no : '-';
+                    }
+                },
+                {
+                    data: null,
+                    class: "text-left",
+                    render: function (data) {
+                        return (data.created_at != '') ? data.created_at : '-';
+                    }
+                },
+                {
+                    data: null,
+                    class: "text-center",
+                    render: function (data) {
+                        return (data.total_qty != '') ? data.total_qty : '-';
+                    }
+                },
+                {
+                    data: null,
+                    class: "text-center",
+                    render: function (data) {
+                        let available_stock_qty = (data.stock_qty != '') ? data.stock_qty : '-';
+                        return `<h4 class="text-danger">${available_stock_qty}</h4>`
+                    }
+                }
+            ],
+            drawCallback: function () {
+                // Initialize total variable
+                var totalStock = 0;
+                var avblStock = 0;
+
+                $('#tblStockList tbody tr').each(function () {
+                    var totalstckText = $(this).find('td').eq(5).text(); // Adjust index if needed
+                    var avblstckText = $(this).find('td').eq(6).text(); // Adjust index if needed
+                    var totalValue = parseFloat(totalstckText.replace(/[^0-9.-]+/g, '')); // Parse as float
+                    var avblValue = parseFloat(avblstckText.replace(/[^0-9.-]+/g, '')); // Parse as float
+
+                    // Check if priceValue is a number before adding to total
+                    if (!isNaN(totalValue)) {
+                        totalStock += totalValue; // Accumulate the total
+                    }
+                    if (!isNaN(avblValue)) {
+                        avblStock += avblValue; // Accumulate the total
+                    }
+                });
+
+                // Update the footer with the total price, formatted
+                $('#totalStock').text(totalStock); 
+                $('#avblStock').text(avblStock); 
+            },
+        });
+
+        // Append elements into the datatable plugin for spacing on top
+        $('.dataTables_filter input[type="search"]').css("width", "9rem");
+        $(".dataTables_filter").parent().addClass("d-flex justify-content-end");
+
+        $(".dataTables_filter").parent().append(`
+        <div class="add-group">
+            <a class="btn btn-light ms-3" onClick="location.reload()">
+                <img src='${window.location.origin}/static/images/icons/re-fresh.svg' alt="Refresh">
+            </a>
+        </div>
+        <a  class="btn btn-info text-white ms-2" title="Download Excel" onclick="ExporttabletoExcell('tblStockList','Stock_List',7)"><i class="icon-download"></i> Excel</a>
+        <a class="btn btn-danger text-white ms-2" onclick="ExporttabletoPdf('tblStockList','Stock_List',7)"><i  class="ti-file btn-icon-append"></i> PDF</a>
+    `);
+    }
+
+
+
+</script>
+{% endblock footer %}

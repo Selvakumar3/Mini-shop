@@ -1,0 +1,15 @@
+Date: 28/10/2024
+Time: 12:37
+Phone Number: +913682383006
+Message: Hello! This is a message sent from Python using pywhatkit.
+--------------------
+Date: 28/10/2024
+Time: 12:39
+Phone Number: +913682383006
+Message: Hello! This is a message sent from Python using pywhatkit.
+--------------------
+Date: 28/10/2024
+Time: 12:48
+Phone Number: +91913682383006
+Message: Hello! This is a message sent from Python using pywhatkit.
+--------------------

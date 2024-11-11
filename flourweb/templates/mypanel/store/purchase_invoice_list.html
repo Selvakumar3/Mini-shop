@@ -1,0 +1,237 @@
+{% extends 'main.html' %}
+{% load static %}
+{% block content %}
+
+<div class="main-panel">
+    <div class="content-wrapper">
+        <!----------------------------------------------------------table--------->
+        <div class="card mb-3">
+            <div class="card-body">
+                <h4 class="card-title">List of Purchase Invoice</h4>
+                <div class="input-group d-flex justify-content-lg-end">
+                    <div id="btnDate" class="btn btn-light mb-4">
+                        <i class="mdi mdi-calendar"></i>&nbsp;
+                        <span class="me-1">Select Date</span>
+                        <i class="fa fa-caret-down"></i>
+                    </div>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover table-bordered border-bottom" id="tblPurchaseInvoiceList">
+                        <thead>
+                            <tr>
+                                <th>S.No</th>
+                                <th>Purchase No</th>
+                                <th>Purchase Date</th>
+                                <th>Purchase info</th>
+                                <th>Bill Type</th>
+                                <th>Price</th>
+                                <th class="text-center">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+
+                        </tbody>
+                        <tfoot>
+                            <tr>
+                                <td colspan="5" class="text-right"><strong>Total:</strong></td>
+                                <td id="totalPrice" class="text-center text-success">0</td>
+                                <td></td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<form action="{% url 'purchase-invoice-details' %}" id="formEditPurchase" method="GET">
+    {% csrf_token %}
+    <input type="hidden" name="hiddenPurchaseId" id="hiddenPurchaseId">
+</form>
+
+{% endblock content %}
+{% block footer %}
+<script>
+
+    var FromDate;
+    var ToDate;
+    var count = 1
+    var dataTable;
+    var billType = '0'
+    var date = new Date();
+    var start_date = date.getFullYear() + "-" + (date.getMonth() + 1) + "-" + date.getDate();
+    var end_date = date.getFullYear() + "-" + (date.getMonth() + 1) + "-" + date.getDate();
+    $(document).ready(function () {
+        datatablebind();
+        FromDate = moment();
+        ToDate = moment();
+
+        $("#btnDate").daterangepicker(
+            {
+                ranges: {
+                    'Today': [moment(), moment()],
+                    'Yesterday': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
+                    'Last 7 Days': [moment().subtract(6, 'days'), moment()],
+                    "This Month": [moment().startOf("month"), moment().endOf("month")],
+                    "Last 30 Days": [moment().subtract("days", 29), moment()],
+                    "Last Month": [
+                        moment().subtract("month", 1).startOf("month"),
+                        moment().subtract("month", 1).endOf("month"),
+                    ],
+                },
+                start_date: FromDate, // Set default "From" date to the start of the current month
+                end_date: ToDate,
+            },
+            getDate
+        );
+        getDate(FromDate, ToDate);
+    });
+    function getDate(start, end) {
+        start_date = start.format("YYYY-MM-DD");
+        end_date = end.format("YYYY-MM-DD");
+        dataTable.draw()
+        $("#btnDate span").html(
+            start.format("MMMM D, YYYY") + " - " + end.format("MMMM D, YYYY")
+        );
+    }
+
+    // EDIT TRIGGER::
+    function editdata(id) {
+        $("#hiddenPurchaseId").val(id);
+        $("#formEditPurchase").submit();
+    };
+
+    // Datatable ::
+    function datatablebind() {
+        dataTable = $("#tblPurchaseInvoiceList").DataTable({
+            responsive: true,
+            autoWidth: false,
+            aLengthMenu: [
+                [10, 30, 50, -1],
+                [10, 30, 50, "All"]
+            ],
+            columnDefs: [
+                {
+                    className: "dt-body-center",
+                    targets: [0, 1,6],
+                    orderable: false
+                }
+            ],
+            language: {
+                search: "_INPUT_", // Removes the 'Search' field label
+                searchPlaceholder: "Search", // Placeholder for the search box
+                sLengthMenu: "_MENU_",
+                sInfo: "_START_ to _END_ of _TOTAL_",
+                sInfoEmpty: "0 to 0 of 0",
+                sInfoFiltered: "(filtered from _MAX_ total records)"
+            },
+            iDisplayLength: 10,
+            processing: true,
+            serverSide: true,
+            ajax: {
+                url: '/store/purchase-datatable/',
+                type: 'GET',
+                data: function (data) {
+                    data.start_date = start_date
+                    data.end_date = end_date
+                }
+            },
+            columns: [
+                {
+                    data: null,
+                    width: 20,
+                    orderable: false,
+                    render: function (data, type, row, meta) {
+                        return meta.row + meta.settings._iDisplayStart + 1;
+                    }
+                },
+                {
+                    data: null,
+                    class: "text-center",
+                    render: function (data) {
+                        return (data.purchase_no != '') ? data.purchase_no : '-';
+                    }
+                },
+                {
+                    data: null,
+                    class: "text-left",
+                    render: function (data) {
+                        return (data.purchase_date != '') ? data.purchase_date : '-';
+                    }
+                },
+                {
+                    data: null,
+                    class: "text-left",
+                    render: function (data) {
+                        if (data.purchaseDet && data.purchaseDet.length > 0) {
+                            return data.purchaseDet.map(product => {
+                                return `<div class="text-success mt-3">${product.product_name}</div>`;
+                            }).join(''); // Join the array of divs into a single string
+                        }
+
+                    return '-';}
+                },
+                {
+                    data: null,
+                    class: "text-center",
+                    render: function (data) {
+                        return (data.bill_type != '') ? data.bill_type : '-';
+
+                    }
+                },
+                {
+                    data: null,
+                    class: "text-center",
+                    render: function (data) {
+                        return (data.net_amount != '') ? data.net_amount : '-';
+
+                    }
+                },
+                {
+                    data: null,
+                    class: "text-center",
+                    render: function (data) {
+                        return `
+                            <td class="text-center">
+                                <a class="btn btn-success btn-rounded btn-icon" onclick=editdata(${data.purchase_id})  title="Edit">
+                                    <i class="ti-pencil-alt" style="font-size: 20px;"></i>
+                                </a>
+                                <a class="btn btn-danger btn-rounded btn-icon" href='/store/delete-purchase-invoice/?purchase_id=${data.purchase_id}' onclick="confirmDelete(event, '${data.purchase_no}')">
+                                    <i class="ti-trash"></i>
+                                </a>
+                        </td>`;
+                    }
+                }
+            ],
+            drawCallback: function () {
+                // Use jQuery to calculate the total
+                var total = 0;
+                $('#tblPurchaseInvoiceList tbody tr').each(function () {
+                    var priceText = $(this).find('td').eq(5).text(); // Get text from the 6th column (zero-indexed)
+                    var priceValue = parseFloat(priceText.replace(/[^0-9.-]+/g, '')); // Parse as float
+                    if (!isNaN(priceValue)) {
+                        total += priceValue; // Accumulate the total
+                    }
+                });
+                $('#totalPrice').text(`₹ ` + total.toFixed(2)); // Update the footer with the total price
+            },
+        });
+
+        // Append elements into the datatable plugin for spacing on top
+        $('.dataTables_filter input[type="search"]').css("width", "9rem");
+        $(".dataTables_filter").parent().addClass("d-flex justify-content-end");
+
+        $(".dataTables_filter").parent().append(`
+        <div class="add-group">
+            <a class="btn btn-light ms-3" onClick="location.reload()">
+                <img src='${window.location.origin}/static/images/icons/re-fresh.svg' alt="Refresh">
+            </a>
+        </div>
+        <a  class="btn btn-info text-white ms-2" title="Download Excel" onclick="ExporttabletoExcell('tblPurchaseInvoiceList','PurchaseInvoice_List',6)"><i class="icon-download"></i> Excel</a>
+        <a class="btn btn-danger text-white ms-2" onclick="ExporttabletoPdf('tblPurchaseInvoiceList','PurchaseInvoice_List',6)"><i  class="ti-file btn-icon-append"></i> PDF</a>
+    `);
+    }
+</script>
+
+{% endblock footer %}

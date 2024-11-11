@@ -1,0 +1,169 @@
+{% extends 'main.html' %}
+{% load static %}
+{% block content %}
+
+<div class="main-panel">
+    <!----------------------- Form------------------------------------------------------->
+    <div id="frmUnit">
+        <form method="POST" action="{% url 'unit' %}" enctype="multipart/form-data" 
+        onsubmit="return check_validate_forms('#frmUnit')">
+        {% csrf_token %}
+            <div class="content-wrapper">
+                <div class="card">
+                    <div class="card-body">
+                        <h4 class="card-title" id="txtTitle">{% if edit %} Edit {% else %} Add {% endif %} unit</h4>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="UnitName">Unit Name</label>
+                                    <input type="text" class="form-control custom-input-border" id="txtUnitName" name="txtUnitName"
+                                        placeholder="Enter unit" maxlength="20" autocomplete="off" data-validate="true" value="{{data.unit_name}}">
+                                        <span class="error-message fs-14"
+                                        style="color: red;">{{errors.message.unit_name|join:""}}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary me-2 ms-2" id="btnSave">{% if edit %} Update {% else %}Submit {% endif %}</button>
+                        <button class="btn btn-light" id="btnCancel">Cancel</button>
+                        <input type="hidden" id="hiddenEdit" name="hiddenEdit" value="{{edit}}">
+                        <input type="hidden" name="hiddenUnitId" id="hiddenUnitId" value="{{unit_id}}">
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+    <div class="content-wrapper">
+        <!----------------------------------------------------------table--------->
+        <div class="card mb-3">
+            <div class="card-body">
+                <h4 class="card-title">List of units</h4>
+                <div class="table-responsive">
+                    <table class="table table-hover table-bordered border-bottom" id="tblUnit">
+                        <thead>
+                            <tr>
+                                <th>S.No</th>
+                                <th>Unit name</th>
+                                <th class="text-center">Action</th>
+                            </tr>
+                        </thead>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock content %}
+{% block footer %}
+<script>
+    $(document).ready(function () {
+        datatablebind();
+        // Clear input Message ::
+        clearErrorMessageOnInput('#frmUnit');
+    });
+
+    // Datatable ::
+    function datatablebind() {
+        $("#tblUnit").DataTable({
+            responsive: true,
+            autoWidth: false,
+            aLengthMenu: [
+                [10, 30, 50, -1],
+                [10, 30, 50, "All"]
+            ],
+            columnDefs: [
+                {
+                    className: "dt-body-center",
+                    targets: [0,2],
+                    orderable: false
+                }
+            ],
+            language: {
+                search: "_INPUT_", // Removes the 'Search' field label
+                searchPlaceholder: "Search", // Placeholder for the search box
+                sLengthMenu: "_MENU_",
+                sInfo: "_START_ to _END_ of _TOTAL_",
+                sInfoEmpty: "0 to 0 of 0",
+                sInfoFiltered: "(filtered from _MAX_ total records)"
+            },
+            iDisplayLength: 10,
+            processing: true,
+            serverSide: true,
+            ajax: {
+                url: '/masters/unit-dt/',
+                type: 'GET',
+                data: function (data) {
+                    // Additional data can be sent if needed
+                }
+            },
+            columns: [
+                {
+                    data: null,
+                    width: 20,
+                    orderable: false,
+                    render: function (data, type, row, meta) {
+                        return meta.row + meta.settings._iDisplayStart + 1;
+                    }
+                },
+                {
+                    data: null,
+                    class: "text-left",
+                    render: function (data) {
+                        return (data.unit_name != '') ? data.unit_name : '-';
+                    }
+                },
+                {
+                    data: null,
+                    class: "text-center",
+                    render: function (data) {
+                        return `
+                            <td class="text-center">
+                                <a class="btn btn-success btn-rounded btn-icon" onclick="EditRow(${data.unit_id})" title="Edit">
+                                    <i class="ti-pencil-alt" style="font-size: 20px;"></i>
+                                </a>
+                                <a class="btn btn-danger btn-rounded btn-icon" href='/masters/deleteunit/?unit_id=${data.unit_id}' onclick="confirmDelete(event, '${data.unit_name}')">
+                                    <i class="ti-trash"></i>
+                                </a>
+                        </td>`;
+                    }
+                }
+            ],
+        });
+
+        // Append elements into the datatable plugin for spacing on top
+        $('.dataTables_filter input[type="search"]').css("width", "9rem");
+        $(".dataTables_filter").parent().addClass("d-flex justify-content-end");
+
+        $(".dataTables_filter").parent().append(`
+        <div class="add-group">
+            <a class="btn btn-light ms-3" onClick="location.reload()">
+                <img src='${window.location.origin}/static/images/icons/re-fresh.svg' alt="Refresh">
+            </a>
+        </div>
+        <a  class="btn btn-info text-white ms-2" title="Download Excel" onclick="ExporttabletoExcell('tblUnit','Unit_List',2)"><i class="icon-download"></i> Excel</a>
+        <a class="btn btn-danger text-white ms-2" onclick="ExporttabletoPdf('tblUnit','Unit_List',2)"><i  class="ti-file btn-icon-append"></i> PDF</a>
+    `);
+}
+
+// Binded data in edit action::
+function EditRow(unit_id) {
+
+fetch(`/masters/edit-unit/?unit_id=${unit_id}`, { method: 'GET' })
+    .then(res => res.json())
+    .then(data => {
+
+        $('#txtUnitName').val(data.unit_name).focus()
+        $('#hiddenEdit').val('edit');
+        $('#hiddenUnitId').val(data.unit_id);
+        $('#btnSave').text('Update')
+        $('#txtTitle').text('Edit Unit')
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+
+    }).catch(error => {
+        console.error('Error:', error);
+
+    });
+}
+
+</script>
+{% endblock footer %}

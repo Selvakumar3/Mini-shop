@@ -1,0 +1,203 @@
+{% extends 'main.html' %}
+{% load static %}
+{% block content %}
+
+
+<div class="main-panel">
+    <div class="row">
+        <!-- First Column -->
+        <div class="col-md-6">
+            <div class="row mt-3">
+                <div class="card">
+                    <div class="card-body">
+                        <h4 class="card-title">General Information</h4>
+                        <form action="{% url 'update-user' %}" method="POST">
+                            {% csrf_token %}
+                            <div class="form-group">
+                                <label for="txtUserName">Username</label>
+                                <input type="text" class="form-control" name="txtUserName" id="txtUserName"
+                                    placeholder="Enter username" value="{% if userData and userData.username %}{{ userData.username }}{% endif %}" maxlength="20" autocomplete="off">
+                            </div>
+                            <div class="form-group">
+                                <label for="txtDisplayName">Display name</label>
+                                <input type="text" class="form-control" name="txtDisplayName" id="txtDisplayName"
+                                    placeholder="Enter displayname" value="{% if userData and userData.display_name %}{{ userData.display_name }}{% endif %}" maxlength="20" autocomplete="off">
+                            </div>
+                            <div class="form-group">
+                                <label for="txtUserEmail">Email</label>
+                                <input type="text" class="form-control" name="txtUserEmail" id="txtUserEmail"
+                                    placeholder="Enter displayname" value="{% if userData and userData.email %}{{ userData.email }}{% endif %}"  autocomplete="off">
+                            </div>
+                            <button type="submit" class="btn btn-primary me-2">Submit</button>
+                            <button type="button" class="btn btn-light"
+                            id="btnCancel">Cancel</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row mt-4"> <!-- Added margin-top for spacing -->
+                <div class="card">
+                    <div class="card-body">
+                        <h4 class="card-title">Password Information</h4>
+                        <form action="{% url 'update-user-password' %}" method="POST"
+                            onsubmit="return my_profile_validation()">
+                            {% csrf_token %}
+
+                            <div class="form-group">
+                                <label for="txtOldPassword">Old Password<small class="text-danger">(Min 8 Characters)</small></label>
+                                <div class="input-group">
+                                    <input type="password" class="form-control custom-input-border" id="txtOldPassword"
+                                        name="txtOldPassword" placeholder="Enter old password" autocomplete="off">
+                                    <div class="input-group-append">
+                                        <span id="togglePassword" class="input-group-text cursor-pointer">
+                                            <i class="mdi mdi-eye" id="eyeIcon"></i>
+                                        </span>
+                                    </div>
+                                </div>
+                                <span id="spanOldpassword" class="text-danger mt-0 p-0 fs-14"></span>
+                            </div>                            
+                            <div class="form-group">
+                                <label for="txtNewPassword">New Password <small class="text-muted">(Min 8
+                                        Characters)</small></label>
+                                <input type="password" class="form-control custom-input-border" id="txtNewPassword"
+                                    name="txtNewPassword" placeholder="Enter new password" minlength="8" autocomplete="off">
+                                <span id="spanpassword" class="text-danger mt-0 p-0 fs-14"></span>
+                            </div>
+                            <div class="form-group">
+                                <label for="txtConfirmPassword">Confirm Password</label>
+                                <input type="password" class="form-control custom-input-border" id="txtConfirmPassword"
+                                    name="txtConfirmPassword" placeholder="Enter confirm password" minlength="8" autocomplete="off">
+                                <span id="spanConfirmpassword" class="text-danger mt-0 p-0 fs-14"></span>
+                            </div>
+
+                            <button type="submit" class="btn btn-primary me-2">Submit</button>
+                            <button type="button" class="btn btn-light"
+                            id="btnCancel">Cancel</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Second Column -->
+        <div class="col-md-6">
+            <div class="content-wrapper">
+                <form action="{% url 'update-profile-picture' %}" method="POST" id="imgvalid"
+                    enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <div class="card">
+                        <div class="card-body">
+                            <h4 class="card-title">Profile Information</h4>
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <div class="form-group">
+                                        <label>Profile Image <small style="color: red;">*Ratio 1:1</small></label>
+                                        <input type="file" name="userProfileImg" id="userProfileImg"
+                                            class="file-upload-default" style="display: none;">
+                                        <div class="input-group col-xs-12">
+                                            <input type="text" class="form-control file-upload-info custom-input-border"
+                                                disabled placeholder="Upload Image">
+                                            <span class="input-group-append">
+                                                <button class="file-upload-browse btn btn-primary" type="button"
+                                                    id="btnCategory"
+                                                    onclick="handleFileUpload('userProfileImg')">Upload</button>
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <div class="text-center">
+                                        <img class="img-fluid rounded" height="150" width="150" id="previewImage"
+                                        {% if userData and userData.profile_image %} 
+                                            src="{{ userData.profile_image }}" 
+                                        {% else %} 
+                                            src="/static/images/no-img-avatar.png" 
+                                            alt="Profile Image Preview" 
+                                        {% endif %}>
+                                   
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="justify-content-end mt-5">
+                                <button type="submit" class="btn btn-primary me-2">Update</button>
+                                <button type="button" class="btn btn-light"
+                                id="btnCancel">Cancel</button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+{% endblock content %}
+{% block footer %}
+<script>
+    $(document).ready(function () {
+        $("#txtConfirmPassword").keyup(checkPasswordMatch);
+    });
+    function checkPasswordMatch() {
+        var password = $("#txtNewPassword").val();
+        var confirmPassword = $("#txtConfirmPassword").val();
+        if (password != confirmPassword) {
+            $("#spanConfirmpassword").removeClass("text-success");
+            $("#spanConfirmpassword").addClass("text-danger");
+            $("#spanConfirmpassword").text("Passwords does not match!");
+        } else {
+            $("#spanConfirmpassword").removeClass("text-danger");
+            $("#spanConfirmpassword").addClass("text-success");
+            $("#spanConfirmpassword").text("Passwords match.");
+        }
+
+        $('#txtNewPassword').bind('keyup', () => {
+            $('#txtNewPassword').removeClass('error')
+            $('#spanpassword').text('')
+        })
+
+        $("#txtNewPassword").on("keypress", function (e) {
+            var key = e.which || e.keyCode;
+            if (key === 13) {
+                postMessage();
+                e.preventDefault();
+            }
+        });
+    }
+    function my_profile_validation() {
+
+        var oldPassword = $('#txtOldPassword').val()
+        var newPassword = $('#txtNewPassword').val()
+        var confirmPassword = $('#txtConfirmPassword').val()
+
+        if (oldPassword == '') {
+            $('#spanOldpassword').html('This field should not be empty')
+            return false;
+        }
+        if (newPassword == '') {
+            $('#spanpassword').html('This field should not be empty')
+            return false;
+        }
+        if (confirmPassword == '') {
+            $('#spanConfirmpassword').html('This field should not be empty')
+            return false;
+        }
+    };
+    $('#togglePassword').on('click', function() {
+        const passwordField = $('#txtOldPassword');
+        const eyeIcon = $('#eyeIcon');
+
+        // Toggle password visibility
+        const isPasswordVisible = passwordField.attr('type') === 'text';
+        passwordField.attr('type', isPasswordVisible ? 'password' : 'text');
+
+        // Toggle eye icon
+        eyeIcon.toggleClass('mdi-eye mdi-eye-off');
+    });
+
+</script>
+{% endblock footer %}

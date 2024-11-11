@@ -1,0 +1,235 @@
+{% extends 'main.html' %}
+{% load static %}
+{% block content %}
+
+<div class="main-panel">
+    <div id="frmPurchaseInvoice">
+        <form action="{% url 'purchase-invoice' %}" method="POST" onsubmit="return submitform()" id="frmSubPurchase" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div class="content-wrapper">
+                <div class="card">
+                    <div class="card-body">
+
+                        
+                        <h4 class="card-title" id="txtPurTitle">Add Purchase Invoice</h4>
+                        <div class="row">
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label for="exampleInputUsername1">Product name</label>
+                                    <select class="form-select" aria-label="Default select example" id="ddlProduct" name="ddlProduct">
+                                        <option value="0"> Select product</option>
+                                        {% for product in product %}
+                                            <option value="{{product.product_id}}" {% if data.product == product.product_id %}selected{% endif %}
+                                            productName="{{product.product_name}}" mrp="{{product.mrp}}"salesAmount="{{product.customer_price}}" unitName="{{product.unit}}" unitId="{{product.unit}}">
+                                            {{product.product_name}}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label for="exampleInputUsername1">Unit name</label>
+                                    <select class="form-select" aria-label="Default select example" id="ddlUnit" name="ddlUnit">
+                                        <option value="0"> Select unit</option>
+                                        {% for unit in unit %}
+                                            <option value="{{unit.unit_id}}" unitId="{{unit.unit_id}}" unitName="{{unit.unit_name}}" convertionValue="{{unit.convertion_value}}" {% if data.unit == unit.unit_id %}selected{% endif %}>
+                                            {{unit.unit_name}}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <input type="hidden" value="{{data.convertion_value}}" id="convertionValue" name="convertionValue">
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label for="exampleInputUsername1">Purchase no</label>
+                                    <input type="text" class="form-control input-readonly" id="txtPurchaseno" name="txtPurchaseno"
+                                       {% if data.purchase_no %} value="{{data.purchase_no}}" {% else %} value="{{generatecode.code}}" {% endif %} readonly>
+                                </div>
+                            </div>
+                            <div class="col-md-3 mt-2">
+                                <label for="exampleInputUsername1" class="fs-14">Purchase Date</label>
+                                <div id="datepicker-popup" class="input-group date datepicker navbar-date-picker">
+                                    <span class="input-group-addon input-group-prepend border-right">
+                                        <span class="icon-calendar input-group-text calendar-icon"></span>
+                                    </span>
+                                    <input type="text" class="form-control" id="txtPurchaseDate" name="txtPurchaseDate">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label for="MRP">MRP</label>
+                                    <input type="text" class="form-control custom-input-border input-readonly" id="MRPAmount" name="MRPAmount" readonly>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label for="Sales">Sales Price</label>
+                                    <input type="text" class="form-control custom-input-border input-readonly" id="salesAmount" name="salesAmount" readonly>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label for="Batch">Batch no</label>
+                                    <select class="form-select" aria-label="Default select example" id="ddlBatchNo" name="ddlBatchNo" >
+                                        <option value="0">Select Batch no</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label for="stockDataDisplay" class="text-danger">Available stock quantity</label>
+                                    <div id="stockDataDisplay" style="border: 1px solid #ccc; padding: 20px; border-radius: 10px;" class="input-readonly"></div>
+                                    <span class="text-danger fs-14" id="spanstockMsg"></span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label for="exampleInputUsername1">Quantity</label>
+                                    <input type="text" class="form-control custom-input-border" id="qty" name="qty" value="" 
+                                        placeholder=" Enter Quantity" onkeypress="return decimalvalidation(event)" onkeyup="calculateitemamount(event)">
+                                      
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label for="exampleInputUsername1">Total Amount</label>
+                                    <input type="text" class="form-control custom-input-border input-readonly" id="totalAmount" name="totalAmount" readonly 
+                                        oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');">
+                                </div>
+                            </div>
+                            <div class="col-md-2 mt-4">
+                                <div class="add-items mt-2">
+                                    <button class="add btn btn-icons btn-rounded btn-primary todo-list-add-btn text-white me-0 pl-12p"  row="0" onclick="itemaddbutton()" id="additembtn">
+                                        <i class="mdi mdi-plus"></i></button>
+                                </div>
+                            </div>
+                        </div>
+    
+                        <div class="row mt-5">
+                            <div class="col-lg-12 col-md-12 col-xl-12">
+                                <div class="form-group">
+                                    <div class="mb-4">
+                                        <table class="table table-striped table-bordered table-hover mb-0">
+                                            <thead class="table-light">
+                                                <tr>
+                                                    <th class="text-center">S.No</th>
+                                                    <th class="text-center">Product</th>
+                                                    <th class="text-center">Unit</th>
+                                                    <th class="text-center">Batch No</th>
+                                                    <th class="text-center">Sales</th>
+                                                    <th class="text-center">MRP</th>
+                                                    <th class="text-center">QTY</th>
+                                                    <th class="text-center">Total</th>
+                                                    <th class="text-center">Action</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="itemtablebody">
+                                                <tr id="emptyitemrow">
+                                                    <td colspan="9" class="text-center">No product available</td>
+                                                </tr>
+                                            </tbody>
+                                            <tfoot style="border-top: 2px solid #dee2e6;">
+                                                <tr>
+                                                    <th colspan="6" class="text-start">Total</th>
+                                                    <td class="text-center fw-bold" id="totqty">0</td>
+                                                    <td class="text-center fw-bold" id=""><span id="account_symbol" class="me-1 mdi mdi-currency-inr"></span> <span id="TotAmt">0.00</span></td>
+                                                    <td></td>
+                                                </tr>
+                                            </tfoot>
+                                        </table>
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <div class="row mt-3">
+                                                    <div class="col-md-9">
+                                                        <label for="exampleInputUsername1">Bill type</label>
+                                                        <select class="form-select" aria-label="Default select example" id="ddlBillType" name="ddlBillType" data-validate="true">
+                                                            <option value="0"> Select Bill type</option>
+                                                            {% for billtype in billtype %}
+                                                                <option value="{{billtype.bill_typeid}}" {% if data.bill_type == billtype.bill_typeid %}selected{% endif %}>
+                                                                {{billtype.bill_type}}</option>
+                                                            {% endfor %}
+                                                        </select>
+                                                        <span class="error-message fs-14" style="color: red;"></span>
+                                                    </div>
+                                                </div>
+                                                <div class="row mt-3">
+                                                    <div class="col-md-9">
+                                                        <div class="form-group local-forms">
+                                                            <label>Notes</label>
+                                                            <textarea class="form-control" rows="4" cols="100" name="notes" id="notes">{{data.notes}}</textarea>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="mb-3">
+                                                    <div class="card">
+                                                        <div class="input-group mt-5">
+                                                            <div class="input-group-prepend ms-auto">
+                                                              <span class="input-group-text bg-white text-black">Sub total</span>
+                                                            </div>
+                                                            <div class="input-group-append">
+                                                              <span class="input-group-text text-black" id="subtotamt" name="subtotamt">0.00</span>
+                                                            </div>
+                                                        </div>
+                                                        <div class="input-group mt-3">
+                                                            <div class="input-group-prepend ms-auto">
+                                                              <span class="input-group-text bg-white text-black">Round Off</span>
+                                                            </div>
+                                                            <div class="input-group-append">
+                                                              <span class="input-group-text text-black" id="roundoffamt" name="roundoffamt">0.00</span>
+                                                            </div>
+                                                        </div>
+                                                        <div class="input-group mt-3">
+                                                            <div class="input-group-prepend ms-auto">
+                                                              <span class="input-group-text bg-white text-black">Net Amount</span>
+                                                            </div>
+                                                            <div class="input-group-append">
+                                                              <span class="input-group-text text-black" id="netamt" name="netamt">0.00</span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="mt-5">
+                                                    <div class="ms-5">
+                                                        <input type="hidden" id="subTotal" name="subTotal">
+                                                        <input type="hidden" id="roundOff" name="roundOff">
+                                                        <input type="hidden" id="netAmount" name="netAmount">
+                                                        <input type="hidden" id="itemdetail" name="itemdetail">
+                                                        <!-- <input type="" id="purchaseId" name="purchaseId" value="{{data.purchase_id}}"> -->
+                                                        <!-- <input type="" id="hiddenPurchaseDet" name="hiddenPurchaseDet" value=""> -->
+                                                        <input type="hidden" id="hiddenPurchaseId" name="hiddenPurchaseId" value="{{data.purchase_id}}">
+                                                        <input type="hidden" id="hiddenEdit" name="hiddenEdit" value="{{edit}}">
+                                                        <button type="submit" class="btn btn-primary" id="btnSubmit">Submit</button>
+                                                        <a href="/store/purchase-invoice-list/" class="btn btn-success text-white" type="button">Go
+                                                            To List</a>
+                                                        <button type="button" class="btn btn-secondary" id="btnCancel">Cancel</button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% endblock content %}
+{% block footer %}
+<script>
+    var itemdetail_data =  '{{data.itemdetail}}'
+    var get_purchase_date =  '{{data.purchase_date}}'
+</script>
+<script src="{% static 'js/admin/purchase_invoice.js' %}"></script>
+
+{% endblock footer %}

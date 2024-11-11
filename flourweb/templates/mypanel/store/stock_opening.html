@@ -1,0 +1,357 @@
+{% extends 'main.html' %}
+{% load static %}
+
+{% block content %}
+
+<div class="main-panel">
+    <div id="frmStock">
+        <form method="POST" action="{% url 'stock' %}" enctype="multipart/form-data" onsubmit="return check_validate_forms('#frmStock')">
+            {% csrf_token %}
+            <div class="content-wrapper">
+                <div class="card">
+                    <div class="card-body">
+                        <h4 class="card-title">Add New Stock Opening</h4>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label for="exampleInputUsername1">Product name</label>
+                                    <select class="form-select" aria-label="Default select example" id="ddlProduct" name="ddlProduct" data-validate="true">
+                                        <option value="0"> Select product</option>
+                                        {% for product in product %}
+                                            <option value="{{product.product_id}}" {% if data.product == product.product_id %}selected{% endif %} salesAmount="{{product.customer_price}}" unitId="{{product.unit}}">
+                                            {{product.product_name}}</option>
+                                        {% endfor %}
+                                    </select>
+                                    <span class="error-message fs-14" style="color: red;"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label for="exampleInputUsername1">Unit name</label>
+                                    <select class="form-select" aria-label="Default select example" id="ddlUnit" name="ddlUnit" data-validate="true">
+                                        <option value="0"> Select unit</option>
+                                        {% for unit in unit %}
+                                            <option value="{{unit.unit_id}}" convertionValue="{{unit.convertion_value}}" {% if data.unit == unit.unit_id %}selected{% endif %}>
+                                            {{unit.unit_name}}</option>
+                                        {% endfor %}
+                                    </select>
+                                    <span class="error-message fs-14" style="color: red;"></span>
+                                </div>
+                                <input type="hidden" value="{{data.convertion_value}}" id="hdnConvertionValue" name="hdnConvertionValue">
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label for="exampleInputUsername1">Batch Number</label>
+                                    <input type="text" class="form-control input-readonly" id="txtBatchNumber" name="txtBatchNumber" autocomplete="off" value="{{get_batch_no}}" readonly>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label for="exampleInputUsername1">Total quantity</label>
+                                    <input type="number" class="form-control custom-input-border" id="txtTotalQty"
+                                        name="txtTotalQty" placeholder="Enter Quantity"
+                                        autocomplete="off" data-validate="true"
+                                        onkeypress="return numbervalidation(event,2)">
+                                        <span class="error-message fs-14" style="color: red;"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-4 mt-2">
+                                <label for="exampleInputUsername1" class="fs-14">Expired Date </label>
+                                <div id="datepicker-popup" class="input-group date datepicker navbar-date-picker">
+                                    <span class="input-group-addon input-group-prepend border-right">
+                                        <span class="icon-calendar input-group-text calendar-icon"></span>
+                                    </span>
+                                    <input type="text" class="form-control" name="txtDOE" id="txtDOE">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label for="exampleInputUsername1">Sales price</label>
+                                    <input type="number" class="form-control input-readonly" id="txtSalesPrice"
+                                        name="txtSalesPrice" placeholder="0" autocomplete="off"  readonly
+                                        onkeypress="return decimalvalidation(event)">
+                                        <!-- <span class="error-message fs-14" style="color: red;"></span> -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <br>
+                    <div class="ms-5">
+                        <button type="submit" class="btn btn-primary me-2">Submit</button>
+                        <button class="btn btn-light" id="btnCancel">Cancel</button>
+                    </div>
+                    <br>
+                </div>
+            </div>
+            <div class="content-wrapper">
+                <!----------------------------------------------------------table--------->
+                <div class="card mb-3">
+                    <div class="card-body">
+                        <h4 class="card-title">List of stock opening</h4>
+                        <div class="row">
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label for="exampleInputUsername1">Product name</label>
+                                    <select class="form-select" aria-label="Default select example" id="ddlProductFtr" name="ddlProductFtr">
+                                        <option value="0"> Select product</option>
+                                        {% for product in product %}
+                                            <option value="{{product.product_id}}" {% if data.product == product.product_id %}selected{% endif %}
+                                            productName="{{product.product_name}}" mrp="{{product.mrp}}"salesAmount="{{product.customer_price}}" unitName="{{product.unit}}" unitId="{{product.unit}}">
+                                            {{product.product_name}}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-7">
+                                <div id="btnDate" class="btn btn-light m-4">
+                                    <i class="mdi mdi-calendar"></i>&nbsp;
+                                    <span class="me-1">Select Date</span>
+                                    <i class="fa fa-caret-down"></i>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-hover table-bordered border-bottom" id="tblStockOpening">
+                                <thead>
+                                    <tr>
+                                        <th>S.No</th>
+                                        <th>Product name</th>
+                                        <th>Batch number</th>
+                                        <th>Total Quantity</th>
+                                        <th>Sales Price</th>
+                                        <th>Manufacturing date</th>
+                                        <th>Expiring date</th>
+                                        <th class="text-center">Action</th>
+                                    </tr>
+                                </thead>
+                                
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </form>
+    </div>
+</div>
+
+{% endblock content %}
+{% block footer %}
+
+
+<script>
+    var FromDate;
+    var ToDate;
+    var count = 1
+    var dataTable;
+    var product_id = '0'
+    var date = new Date();
+    var start_date = date.getFullYear() + "-" + (date.getMonth() + 1) + "-" + date.getDate();
+    var end_date = date.getFullYear() + "-" + (date.getMonth() + 1) + "-" + date.getDate();
+
+    $(document).ready(function () {
+
+        datatablebind();
+        // Clear input Message ::
+        // clearErrorMessageOnInput('#frmStock');
+
+        FromDate = moment();
+        ToDate = moment();
+
+        $("#btnDate").daterangepicker(
+            {
+                ranges: {
+                    'Today': [moment(), moment()],
+                    'Yesterday': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
+                    'Last 7 Days': [moment().subtract(6, 'days'), moment()],
+                    "This Month": [moment().startOf("month"), moment().endOf("month")],
+                    "Last 30 Days": [moment().subtract("days", 29), moment()],
+                    "Last Month": [
+                        moment().subtract("month", 1).startOf("month"),
+                        moment().subtract("month", 1).endOf("month"),
+                    ],
+                },
+                start_date: FromDate, // Set default "From" date to the start of the current month
+                end_date: ToDate,
+            },
+            getDate
+        );
+        getDate(FromDate, ToDate);
+
+        $('#ddlProduct').select2({
+            minimumResultsForSearch: 0 // Ensures the search box is always visible
+        });
+        $('#ddlProductFtr').select2({
+            minimumResultsForSearch: 0 // Ensures the search box is always visible
+        });
+        $('#ddlUnit').select2({
+            minimumResultsForSearch: 0 // Ensures the search box is always visible
+        });
+        var today = new Date();
+        var sixDaysFromNow = new Date(today.getTime() + 6 * 24 * 60 * 60 * 1000); // Calculate the date 6 days from today
+
+        $('#txtDOE', '#datepicker-popup').datepicker({
+            format: 'dd/mm/yyyy', // Change this format if needed
+            startDate: '+0d', // Disable past dates
+            autoclose: true // Close the datepicker after selecting a date
+        }).datepicker('setDate', sixDaysFromNow); // Set the default date to 6 days from today
+
+        // Optional: Limit selectable dates to today through the next 6 days
+        $('#txtDOE', '#datepicker-popup').datepicker('setStartDate', today);
+        $('#txtDOE', '#datepicker-popup').datepicker('setEndDate', new Date(today.getTime() + 6 * 24 * 60 * 60 * 1000));
+
+        $('#ddlUnit').change(function(){
+            var convertionValue =  $('#ddlUnit option:selected').attr('convertionValue')
+            $('#hdnConvertionValue').val(convertionValue)
+        })
+
+    
+        // Once ddl change product against data binded in forms
+        $('#ddlProduct').change(function (event) {
+            if ($(this).val() != '0') {
+                var itemid = $('#ddlProduct option:selected')
+                $('#txtSalesPrice').val(itemid.attr('salesAmount'))
+                $('#ddlUnit').val(itemid.attr('unitId')).trigger('change')
+            } else {
+                $('#txtSalesPrice').val('')
+                $('#ddlUnit').val('0').trigger('change')
+            }
+        })
+
+        // Once ddl change product filter against datatable 
+        $('#ddlProductFtr').change(function (event) {
+            product_id = $('#ddlProductFtr option:selected').val();
+            dataTable.draw()
+        })
+    });
+    function getDate(start, end) {
+        start_date = start.format("YYYY-MM-DD");
+        end_date = end.format("YYYY-MM-DD");
+        dataTable.draw()
+        $("#btnDate span").html(
+            start.format("MMMM D, YYYY") + " - " + end.format("MMMM D, YYYY")
+        );
+    }
+
+    // Datatable ::
+    function datatablebind() {
+        dataTable = $("#tblStockOpening").DataTable({
+            responsive: true,
+            autoWidth: false,
+            aLengthMenu: [
+                [10, 30, 50, -1],
+                [10, 30, 50, "All"]
+            ],
+            columnDefs: [
+                {
+                    className: "dt-body-center",
+                    targets: [0,7],
+                    orderable: false
+                }
+            ],
+            language: {
+                search: "_INPUT_", // Removes the 'Search' field label
+                searchPlaceholder: "Search", // Placeholder for the search box
+                sLengthMenu: "_MENU_",
+                sInfo: "_START_ to _END_ of _TOTAL_",
+                sInfoEmpty: "0 to 0 of 0",
+                sInfoFiltered: "(filtered from _MAX_ total records)"
+            },
+            iDisplayLength: 10,
+            processing: true,
+            serverSide: true,
+            ajax: {
+                url: '/store/stock_opening_dt/',
+                type: 'GET',
+                data: function (data) {
+                    data.start_date = start_date
+                    data.end_date = end_date
+                    data.product_id = product_id
+                }
+            },
+            columns: [
+                {
+                    data: null,
+                    width: 20,
+                    orderable: false,
+                    render: function (data, type, row, meta) {
+                        return meta.row + meta.settings._iDisplayStart + 1;
+                    }
+                },
+                {
+                    data: null,
+                    class: "text-left",
+                    render: function (data) {
+                        return (data.product_name != '') ? data.product_name : '-';
+                    }
+                },
+                {
+                    data: null,
+                    class: "text-left",
+                    render: function (data) {
+                        return (data.batch_no != '') ? data.batch_no : '-';
+                    }
+                },
+                {
+                    data: null,
+                    class: "text-left",
+                    render: function (data) {
+                        return (data.total_qty != '') ? data.total_qty : '-';
+                    }
+                },
+                {
+                    data: null,
+                    class: "text-left",
+                    render: function (data) {
+                        return (data.sales_amount != '') ? data.sales_amount : '-';
+                    }
+                },
+                {
+                    data: null,
+                    class: "text-left",
+                    render: function (data) {
+                        return (data.created_at != '') ? data.created_at : '-';
+                    }
+                },
+                {
+                    data: null,
+                    class: "text-left",
+                    render: function (data) {
+                        return (data.expire_date != '') ? data.expire_date : '-';
+                    }
+                },
+                {
+                    data: null,
+                    class: "text-center",
+                    render: function (data) {
+                        return `
+                            <td class="text-center">
+                                <a class="btn btn-danger btn-rounded btn-icon" href='/store/deletestockopening/?opening_id=${data.opening_id}' onclick="confirmDelete(event, '${data.batch_no}')">
+                                    <i class="ti-trash"></i>
+                                </a>
+                        </td>`;
+                    }
+                }
+            ],
+        });
+
+        // Append elements into the datatable plugin for spacing on top
+        $('.dataTables_filter input[type="search"]').css("width", "9rem");
+        $(".dataTables_filter").parent().addClass("d-flex justify-content-end");
+
+        $(".dataTables_filter").parent().append(`
+        <div class="add-group">
+            <a class="btn btn-light ms-3" onClick="location.reload()">
+                <img src='${window.location.origin}/static/images/icons/re-fresh.svg' alt="Refresh">
+            </a>
+        </div>
+        <a  class="btn btn-info text-white ms-2" title="Download Excel" onclick="ExporttabletoExcell('tblStockOpening','StockOpening_List',7)"><i class="icon-download"></i> Excel</a>
+        <a class="btn btn-danger text-white ms-2" onclick="ExporttabletoPdf('tblStockOpening','StockOpening_List',7)"><i  class="ti-file btn-icon-append"></i> PDF</a>
+    `);
+}
+
+
+</script>
+{% endblock footer %}
